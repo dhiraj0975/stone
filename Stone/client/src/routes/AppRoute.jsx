@@ -8,6 +8,10 @@ import VendorPage from "../components/vendors/VendorPage";
 import PrivateRoute from "../components/PrivateRoute";
 import Spinner from "../components/Spinner";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
+import ProductionEntryForm from "../components/Sidebar/ProductionEntryForm";
+import PurchaseOrder from "../components/Sidebar/PurchaseOrder";
+import Product from "../components/Sidebar/Product";
+
 
 const AppRoute = () => {
   const { loading } = useSelector((state) => state.alerts);
@@ -21,11 +25,12 @@ const AppRoute = () => {
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/vendor" element={<VendorPage />} />
-            <Route path="/purchase-order" element={<h1>Purchase Order</h1>} />
+            <Route path="/purchase-order" element={<PurchaseOrder/>} />
             <Route path="/bom" element={<h1>BOM</h1>} />
-            <Route path="/production" element={<h1>Production Entry</h1>} />
+            <Route path="/production" element={<ProductionEntryForm/>} />
             <Route path="/inventory" element={<h1>Inventory</h1>} />
             <Route path="/invoicing" element={<h1>Invoicing</h1>} />
+            <Route path="/product" element={<Product/>}/>
           </Route>
         </Route>
 
