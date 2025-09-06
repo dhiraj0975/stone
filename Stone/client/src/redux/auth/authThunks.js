@@ -15,7 +15,7 @@ export const registerUser = createAsyncThunk(
 );
 
 export const loginUser = createAsyncThunk(
-  "auth/login",
+  "auth/login", 
   async (credentials, { rejectWithValue }) => {
     try {
       const res = await api.post("/api/auth/login", credentials);
@@ -42,10 +42,11 @@ export const logoutUser = createAsyncThunk(
   "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await api.get("/api/auth/logout");
+      const res = await api.get("/api/auth/logout", { withCredentials: true });
       return res.data;
     } catch (err) {
       return rejectWithValue("Logout failed");
     }
   }
 );
+
