@@ -1,33 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { FcGoogle } from 'react-icons/fc';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../../redux/auth/authThunks';
+
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // Local state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  // Redux state
+  const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
+
+  // Redirect if login successful
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    
-    // Static validation
+
     if (!email || !password) {
-      setError('Please fill in all fields');
-      setLoading(false);
+      alert('Please fill in all fields');
       return;
     }
-    
-    console.log('Login attempt with:', { email, password });
-    setLoading(false);
+
+    // Dispatch login thunk
+    dispatch(loginUser({ email, password }));
   };
 
   const handleGoogleLogin = () => {
     console.log('Google login clicked');
-    // In a real app, this would trigger Firebase Google auth
+    // Implement Firebase/Google OAuth here
   };
 
   return (

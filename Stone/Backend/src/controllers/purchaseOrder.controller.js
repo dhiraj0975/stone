@@ -3,10 +3,10 @@ const {
   getPurchaseOrderById,
   createPurchaseOrder,
   updatePurchaseOrder,
-  deletePurchaseOrder
+  deletePurchaseOrder,
 } = require("../models/purchaseOrder.model");
 
-// GET all
+// GET all POs
 const fetchPurchaseOrders = async (req, res) => {
   try {
     const orders = await getPurchaseOrders();
@@ -16,7 +16,7 @@ const fetchPurchaseOrders = async (req, res) => {
   }
 };
 
-// GET by ID
+// GET single PO
 const fetchPurchaseOrder = async (req, res) => {
   try {
     const order = await getPurchaseOrderById(req.params.id);
@@ -27,17 +27,17 @@ const fetchPurchaseOrder = async (req, res) => {
   }
 };
 
-// POST create
+// CREATE PO
 const addPurchaseOrder = async (req, res) => {
   try {
     const result = await createPurchaseOrder(req.body);
-    res.json({ message: "Purchase Order created", id: result.insertId });
+    res.status(201).json({ message: "Purchase Order created", id: result.insertId });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// PUT update
+// UPDATE PO
 const editPurchaseOrder = async (req, res) => {
   try {
     await updatePurchaseOrder(req.params.id, req.body);
@@ -47,7 +47,7 @@ const editPurchaseOrder = async (req, res) => {
   }
 };
 
-// DELETE
+// DELETE PO
 const removePurchaseOrder = async (req, res) => {
   try {
     await deletePurchaseOrder(req.params.id);
@@ -62,5 +62,5 @@ module.exports = {
   fetchPurchaseOrder,
   addPurchaseOrder,
   editPurchaseOrder,
-  removePurchaseOrder
+  removePurchaseOrder,
 };

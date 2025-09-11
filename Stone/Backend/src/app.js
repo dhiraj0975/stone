@@ -11,24 +11,28 @@ const app = express();
 // Allowed origins (local + env)
 const allowedOrigins = [
   process.env.FRONTEND_URL,   // e.g. https://myapp.com
-  "http://localhost:3000",    // React local dev
-  "http://127.0.0.1:3000"     // Another localhost option
+  "http://localhost:5173",
+  "http://localhost:5174"    // React local dev
+    // Another localhost option
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like Postman or server-to-server)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS: " + origin));
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.filter(Boolean).includes(origin)
+      ) {
+        return callback(null, true);
       }
+      return callback(new Error("Not allowed by CORS: " + origin));
     },
-    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
-    credentials: true
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
   })
 );
+
+// Note: cors() will automatically handle OPTIONS preflight for configured routes
 
 // ===============  Middleware =================
 app.use(express.json());

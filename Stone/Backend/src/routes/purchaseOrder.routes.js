@@ -1,5 +1,12 @@
 const express = require("express");
-const { fetchPurchaseOrders, fetchPurchaseOrder, addPurchaseOrder, editPurchaseOrder, removePurchaseOrder } = require("../controllers/purchaseOrder.controller");
+const {
+  fetchPurchaseOrders,
+  fetchPurchaseOrder,
+  addPurchaseOrder,
+  editPurchaseOrder,
+  removePurchaseOrder,
+} = require("../controllers/purchaseOrder.controller");
+
 const PurchaseOrderRouter = express.Router();
 
 PurchaseOrderRouter.get("/", fetchPurchaseOrders);

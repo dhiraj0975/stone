@@ -2,16 +2,19 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+
+// Pages & Components
 import Login from "../pages/auth/Login";
 import Dashboard from "../components/Dashboard/Dashboard";
 import VendorPage from "../components/vendors/VendorPage";
-import PrivateRoute from "../components/PrivateRoute";
+import PrivateRoute from '../components/PrivateRoute'
+
 import Spinner from "../components/Spinner";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
-import ProductionEntryForm from "../components/Sidebar/ProductionEntryForm";
-import PurchaseOrder from "../components/Sidebar/PurchaseOrder";
-import Product from "../components/Sidebar/Product";
 
+//import PurchaseOrder from "../components/Sidebar/PurchaseOrder";
+import Product from "../components/Sidebar/Product";
+import ProductionEntryForm from "../components/Sidebar/ProductionEntryForm";
 
 const AppRoute = () => {
   const { loading } = useSelector((state) => state.alerts);
@@ -20,25 +23,24 @@ const AppRoute = () => {
     <BrowserRouter>
       {loading && <Spinner />}
       <Routes>
-        {/* Protected routes (with Sidebar) */}
-        <Route element={<PrivateRoute />}>
+        {/* 🔒 Protected routes (with sidebar layout) */}
+     
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/vendor" element={<VendorPage />} />
-            <Route path="/purchase-order" element={<PurchaseOrder/>} />
+          
             <Route path="/bom" element={<h1>BOM</h1>} />
-            <Route path="/production" element={<ProductionEntryForm/>} />
+            <Route path="/production" element={<ProductionEntryForm />} />
             <Route path="/inventory" element={<h1>Inventory</h1>} />
             <Route path="/invoicing" element={<h1>Invoicing</h1>} />
-            <Route path="/product" element={<Product/>}/>
+            <Route path="/product" element={<Product />} />
           </Route>
-        </Route>
-
-        {/* Public routes (no sidebar) */}
+        
+        {/* 🌐 Public routes (no layout) */}
         <Route path="/login" element={<Login />} />
         <Route path="/unauthorized" element={<h1>Unauthorized Access</h1>} />
 
-        {/* Catch-all route */}
+        {/* 🚫 Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

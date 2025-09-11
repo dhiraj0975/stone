@@ -23,7 +23,7 @@ export default function VendorPage() {
     dispatch(getVendors());
   }, [dispatch]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.name || !formData.mobile_no || !formData.firm_name) {
@@ -33,14 +33,15 @@ export default function VendorPage() {
 
     setFormError("");
 
-    if (editId) {
-      // ✅ Update vendor
-      dispatch(updateVendor({ id: editId, ...formData }));
-      setEditId(null);
-    } else {
-      // ✅ Create vendor
-      dispatch(createVendor(formData));
-    }
+    try {
+      if (editId) {
+        await dispatch(updateVendor({ id: editId, ...formData }));
+        setEditId(null);
+      } else {
+        await dispatch(createVendor(formData));
+      }
+      await dispatch(getVendors());
+    } catch (_) {}
 
     setFormData({
       name: "",
@@ -63,7 +64,7 @@ export default function VendorPage() {
       status: vendor.status,
       email: vendor.email,
     });
-    setEditId(vendor.id);
+    setEditId(vendor._id || vendor.id);
   };
 
   return (
@@ -170,7 +171,7 @@ export default function VendorPage() {
           </thead>
           <tbody>
             {vendors.map((vendor) => (
-              <tr key={vendor.id}>
+              <tr key={vendor._id || vendor.id}>
                 <td className="p-2 border">{vendor.name || "-"}</td>
                 <td className="p-2 border">{vendor.mobile_no || "-"}</td>
                 <td className="p-2 border">{vendor.firm_name || "-"}</td>
@@ -191,7 +192,7 @@ export default function VendorPage() {
                     Edit
                   </button>
                   <button
-                    onClick={() => dispatch(deleteVendor(vendor.id))}
+                    onClick={() => dispatch(deleteVendor(vendor._id || vendor.id))}
                     className="bg-red-500 text-white px-2 py-1 rounded"
                   >
                     Delete

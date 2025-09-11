@@ -1,189 +1,196 @@
+// src/pages/auth/AuthPage.jsx
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { HideLoading, ShowLoading } from "../../redux/alertSlice";
-import { loginUser } from "../../redux/auth/authThunks";
+import { loginUser, registerUser } from "../../redux/auth/authThunks";
+import { ShowLoading, HideLoading } from "../../redux/alertSlice";
 import { useNavigate } from "react-router-dom";
 
-export default function AuthPage() {
+const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
-
-  // Login form state
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-
-  // Register form state
-  const [registerName, setRegisterName] = useState("");
-  const [registerEmail, setRegisterEmail] = useState("");
-  const [registerPassword, setRegisterPassword] = useState("");
-  const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    name: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLoginSubmit = async (e) => {
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    dispatch(ShowLoading());
+    setError("");
+
+    if (!formData.email || !formData.password) {
+      setError("Please fill in all fields");
+      return;
+    }
+
     try {
-      await dispatch(loginUser({ email: loginEmail, password: loginPassword }));
+      dispatch(ShowLoading());
+      await dispatch(
+        loginUser({ email: formData.email, password: formData.password })
+      ).unwrap();
       navigate("/");
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      setError(err || "Login failed");
     } finally {
       dispatch(HideLoading());
     }
   };
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    if (registerPassword !== registerConfirmPassword) {
-      alert("Passwords do not match!");
+    setError("");
+
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      setError("Please fill in all fields");
       return;
     }
-    alert(`Register with:\nName: ${registerName}\nEmail: ${registerEmail}`);
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    try {
+      dispatch(ShowLoading());
+      await dispatch(
+        registerUser({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        })
+      ).unwrap();
+      navigate("/");
+    } catch (err) {
+      setError(err || "Register failed");
+    } finally {
+      dispatch(HideLoading());
+    }
   };
 
   return (
-    <div className='min-h-screen flex items-center justify-center p-4'>
-      <div className='bg-white border border-gray-300 rounded-lg shadow-2xl p-8 max-w-md w-full'>
-        <div className='flex justify-center mb-6'>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
+        {/* Tabs */}
+        <div className="flex justify-center mb-6">
           <button
             onClick={() => setIsLogin(true)}
-            className={`px-6 py-2 font-semibold rounded-t-lg border-b-4 ${
-              isLogin
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500"
-            } focus:outline-none`}
+            className={`px-4 py-2 font-medium ${
+              isLogin ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500"
+            }`}
           >
             Login
           </button>
-          {/* <button
+          <button
             onClick={() => setIsLogin(false)}
-            className={`px-6 py-2 font-semibold rounded-t-lg border-b-4 ${
-              !isLogin
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500"
-            } focus:outline-none`}
+            className={`px-4 py-2 font-medium ${
+              !isLogin ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500"
+            }`}
           >
             Register
-          </button> */}
+          </button>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 text-red-600 text-sm bg-red-50 p-2 rounded">
+            {error}
+          </div>
+        )}
+
+        {/* Form */}
         {isLogin ? (
-          <form onSubmit={handleLoginSubmit} className='space-y-5'>
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label
-                htmlFor='loginEmail'
-                className='block text-gray-700 font-medium mb-2'
-              >
-                Email Address
-              </label>
+              <label className="text-sm font-medium">Email</label>
               <input
-                type='email'
-                id='loginEmail'
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
                 required
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                placeholder='you@example.com'
-                className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500'
               />
             </div>
             <div>
-              <label
-                htmlFor='loginPassword'
-                className='block text-gray-700 font-medium mb-2'
-              >
-                Password
-              </label>
+              <label className="text-sm font-medium">Password</label>
               <input
-                type='password'
-                id='loginPassword'
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
                 required
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder='Enter your password'
-                className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500'
               />
             </div>
             <button
-              type='submit'
-              className='w-full bg-indigo-600 text-white py-3 rounded-md text-lg font-semibold hover:bg-indigo-700 transition'
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
             >
               Login
             </button>
           </form>
         ) : (
-          <form onSubmit={handleRegisterSubmit} className='space-y-5'>
+          <form onSubmit={handleRegister} className="space-y-4">
             <div>
-              <label
-                htmlFor='registerName'
-                className='block text-gray-700 font-medium mb-2'
-              >
-                Full Name
-              </label>
+              <label className="text-sm font-medium">Full Name</label>
               <input
-                type='text'
-                id='registerName'
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
                 required
-                value={registerName}
-                onChange={(e) => setRegisterName(e.target.value)}
-                placeholder='Your full name'
-                className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500'
               />
             </div>
             <div>
-              <label
-                htmlFor='registerEmail'
-                className='block text-gray-700 font-medium mb-2'
-              >
-                Email Address
-              </label>
+              <label className="text-sm font-medium">Email</label>
               <input
-                type='email'
-                id='registerEmail'
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
                 required
-                value={registerEmail}
-                onChange={(e) => setRegisterEmail(e.target.value)}
-                placeholder='you@example.com'
-                className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500'
               />
             </div>
             <div>
-              <label
-                htmlFor='registerPassword'
-                className='block text-gray-700 font-medium mb-2'
-              >
-                Password
-              </label>
+              <label className="text-sm font-medium">Password</label>
               <input
-                type='password'
-                id='registerPassword'
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
                 required
-                value={registerPassword}
-                onChange={(e) => setRegisterPassword(e.target.value)}
-                placeholder='Enter password'
-                className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500'
               />
             </div>
             <div>
-              <label
-                htmlFor='registerConfirmPassword'
-                className='block text-gray-700 font-medium mb-2'
-              >
-                Confirm Password
-              </label>
+              <label className="text-sm font-medium">Confirm Password</label>
               <input
-                type='password'
-                id='registerConfirmPassword'
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
                 required
-                value={registerConfirmPassword}
-                onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                placeholder='Confirm password'
-                className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500'
               />
             </div>
             <button
-              type='submit'
-              className='w-full bg-indigo-600 text-white py-3 rounded-md text-lg font-semibold hover:bg-indigo-700 transition'
+              type="submit"
+              className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
             >
               Register
             </button>
@@ -192,4 +199,6 @@ export default function AuthPage() {
       </div>
     </div>
   );
-}
+};
+
+export default AuthPage;

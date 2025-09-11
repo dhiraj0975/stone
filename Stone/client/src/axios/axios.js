@@ -1,7 +1,8 @@
 import axios from "axios";
 
+// Use same-origin relative base to avoid cross-site cookie issues in dev
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "/api",
   withCredentials: true,
 });
 

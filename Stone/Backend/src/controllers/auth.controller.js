@@ -1,6 +1,5 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const db = require("../config/db");
 const { findByEmail, findById, createUser } = require("../models/user.model");
 
 // Register
@@ -9,9 +8,7 @@ const register = (req, res) => {
 
   findByEmail(email, async (err, existingUser) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+    if (existingUser) return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -28,30 +25,34 @@ const login = (req, res) => {
 
   findByEmail(email, async (err, user) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
+    if (!user) return res.status(400).json({ message: "Invalid email or password" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
+    if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
-    });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
 
+    // Use secure+None in production, lax in development for localhost
+    const isProd = process.env.NODE_ENV === "production";
     res.cookie("token", token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production", // only https in production
-  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // cross-site cookie fix
-  maxAge: 24 * 60 * 60 * 1000, // 1 day
-});
-
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "None" : "Lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
 
     res.status(200).json({
       message: "Login successful",
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
       token,
     });
   });
@@ -68,8 +69,18 @@ const getUserProfile = (req, res) => {
 
 // Logout
 const logout = (req, res) => {
-  res.clearCookie("token");
+  const isProd = process.env.NODE_ENV === "production";
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "None" : "Lax",
+  });
   res.status(200).json({ message: "Logout successful" });
 };
 
-module.exports = { register, login, getUserProfile, logout };
+module.exports = {
+  register,
+  login,
+  getUserProfile,
+  logout,
+};

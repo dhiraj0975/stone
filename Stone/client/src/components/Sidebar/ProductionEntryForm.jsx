@@ -3,13 +3,17 @@ import { FiSave, FiX, FiPlus } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
-import {
-  createProduct,
-  fetchProducts,
-} from "../../redux/product/productThunks";
+
 import { HideLoading, ShowLoading } from "../../redux/alertSlice";
+import { createProduct, getProducts } from "../../redux/product/productThunks";
 
 const ProductionEntryForm = ({ onFormSubmit }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { products = [], error } = useSelector((state) => state.product); // Fix here
+  const data = Array.isArray(products) ? products : [];
+
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -23,12 +27,27 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
     quantity: "",
     remarks: "",
   });
+  const [errors, setErrors] = useState({});
+  const [filterText, setFilterText] = useState("");
 
-  const { products, error } = useSelector((state) => state.product);
+  const productTypes = [
+    "Raw Material",
+    "Finished Good",
+    "Fuel",
+    "Equipment Part",
+  ];
 
-  console.log(error);
+  const units = ["Kg", "Liters", "Pieces", "Meters", "Boxes"];
 
-  const data = products.data || [];
+  useEffect(() => {
+    dispatch(getProducts()); // ✅ Fixed
+  }, [dispatch]);
+
+  const filteredItems = data.filter(
+    (item) =>
+      item.name?.toLowerCase().includes(filterText.toLowerCase()) ||
+      item.itemCode?.toLowerCase().includes(filterText.toLowerCase())
+  );
 
   const columns = [
     { name: "Item Code", selector: (row) => row.itemCode, sortable: true },
@@ -48,7 +67,7 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
       sortable: true,
     },
   ];
-  // Search Filter
+
   const FilterComponent = ({ filterText, onFilter, onClear }) => (
     <div style={{ marginBottom: "10px" }}>
       <input
@@ -62,21 +81,6 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
     </div>
   );
 
-  // console.log(products.data, "JJJJ");
-
-  const [errors, setErrors] = useState({});
-
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const [filterText, setFilterText] = useState("");
-
-  const filteredItems = data.filter(
-    (item) =>
-      item.name.toLowerCase().includes(filterText.toLowerCase()) ||
-      item.itemCode.toLowerCase().includes(filterText.toLowerCase())
-  );
-
   const subHeaderComponent = (
     <FilterComponent
       filterText={filterText}
@@ -84,16 +88,6 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
       onClear={() => setFilterText("")}
     />
   );
-
-  //!
-
-  const productTypes = [
-    "Raw Material",
-    "Finished Good",
-    "Fuel",
-    "Equipment Part",
-  ];
-  const units = ["Kg", "Liters", "Pieces", "Meters", "Boxes"];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -114,39 +108,6 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const newErrors = {};
-    if (!formData.product.itemCode)
-      newErrors.itemCode = "Item Code is required";
-    if (!formData.product.name) newErrors.name = "Item Name is required";
-    if (!formData.product.type) newErrors.type = "Item Type is required";
-    if (!formData.product.unitOfMeasurement)
-      newErrors.unitOfMeasurement = "UOM is required";
-    // if (!formData.quantity) newErrors.quantity = "Quantity is required";
-
-    setErrors(newErrors);
-
-    try {
-      dispatch(ShowLoading());
-      if (Object.keys(newErrors).length === 0) {
-        // console.log("Form Data Submitted:", formData);
-        dispatch(createProduct(formData.product));
-        if (onFormSubmit) {
-          onFormSubmit(formData);
-        }
-        setShowForm(false);
-        resetForm();
-      }
-      dispatch(fetchProducts());
-    } catch (error) {
-      console.log(error);
-    } finally {
-      dispatch(HideLoading());
-    }
-  };
-
   const resetForm = () => {
     setFormData({
       date: new Date().toISOString().split("T")[0],
@@ -158,6 +119,7 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
         description: "",
       },
       quantity: "",
+      remarks: "",
     });
     setErrors({});
   };
@@ -167,9 +129,34 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
     resetForm();
   };
 
-  useEffect(() => {
-    dispatch(fetchProducts());
-  }, []);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const newErrors = {};
+    if (!formData.product.itemCode)
+      newErrors.itemCode = "Item Code is required";
+    if (!formData.product.name) newErrors.name = "Item Name is required";
+    if (!formData.product.type) newErrors.type = "Item Type is required";
+    if (!formData.product.unitOfMeasurement)
+      newErrors.unitOfMeasurement = "UOM is required";
+
+    setErrors(newErrors);
+
+    try {
+      dispatch(ShowLoading());
+      if (Object.keys(newErrors).length === 0) {
+        await dispatch(createProduct(formData.product));
+        dispatch(getProducts());
+        if (onFormSubmit) onFormSubmit(formData);
+        setShowForm(false);
+        resetForm();
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      dispatch(HideLoading());
+    }
+  };
 
   return (
     <div>
@@ -196,7 +183,6 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
             </div>
 
             <form onSubmit={handleSubmit}>
-              {/* Production Order Info */}
               <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-8'>
                 <div>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
@@ -212,7 +198,6 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
                 </div>
               </div>
 
-              {/* Product Info */}
               <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-8'>
                 <div>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
@@ -254,7 +239,6 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
                 </div>
               </div>
 
-              {/* More Product Details */}
               <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
                 <div>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
@@ -307,29 +291,8 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
                     </p>
                   )}
                 </div>
-
-                {/* <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>
-                    Quantity
-                  </label>
-                  <input
-                    type='number'
-                    name='quantity'
-                    value={formData.quantity}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${
-                      errors.quantity ? "border-red-500" : "border-gray-300"
-                    } rounded-md`}
-                  />
-                  {errors.quantity && (
-                    <p className='text-red-500 text-xs mt-1'>
-                      {errors.quantity}
-                    </p>
-                  )}
-                </div> */}
               </div>
 
-              {/* Description */}
               <div className='mb-8'>
                 <label className='block text-sm font-medium text-gray-700 mb-1'>
                   Description
@@ -343,9 +306,6 @@ const ProductionEntryForm = ({ onFormSubmit }) => {
                 />
               </div>
 
-              {/* Remarks */}
-
-              {/* Submit Buttons */}
               <div className='flex justify-end space-x-4'>
                 <button
                   type='button'

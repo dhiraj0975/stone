@@ -1,74 +1,40 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
-import API from "../../axios/axios";
-import toast from "react-hot-toast";
+// src/redux/product/productThunks.js
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import ProductAPI from '../../axios/product.API';
 
-export const fetchProducts = createAsyncThunk(
-  "products/fetchAll",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await API.get("/api/products");
-      return res.data;
-    } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.error || "Failed to fetch products"
-      );
-    }
-  }
-);
 
-export const fetchProductById = createAsyncThunk(
-  "products/fetchById",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await API.get(`/api/products/${id}`);
-      return res.data;
-    } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.error || "Failed to fetch product"
-      );
-    }
+export const getProducts = createAsyncThunk('products/getAll', async (_, thunkAPI) => {
+  try {
+    const res = await ProductAPI.getAll();
+    return res.data;
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.error || err.message);
   }
-);
+});
 
-export const createProduct = createAsyncThunk(
-  "products/create",
-  async (data, { rejectWithValue }) => {
-    try {
-      const res = await API.post("/api/products", data);
-      return res.data;
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to create product");
-      return rejectWithValue(
-        err.response?.data?.error || "Failed to create product"
-      );
-    }
+export const createProduct = createAsyncThunk('products/create', async (data, thunkAPI) => {
+  try {
+    const res = await ProductAPI.create(data);
+    return res.data;
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.error || err.message);
   }
-);
+});
 
-export const updateProduct = createAsyncThunk(
-  "products/update",
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const res = await API.put(`/api/products/${id}`, data);
-      return res.data;
-    } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.error || "Failed to update product"
-      );
-    }
+export const updateProduct = createAsyncThunk('products/update', async ({ id, data }, thunkAPI) => {
+  try {
+    const res = await ProductAPI.update(id, data);
+    return res.data;
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.error || err.message);
   }
-);
+});
 
-export const deleteProduct = createAsyncThunk(
-  "products/delete",
-  async (id, { rejectWithValue }) => {
-    try {
-      await API.delete(`/api/products/${id}`);
-      return id;
-    } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.error || "Failed to delete product"
-      );
-    }
+export const deleteProduct = createAsyncThunk('products/delete', async (id, thunkAPI) => {
+  try {
+    await ProductAPI.delete(id);
+    return id;
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.error || err.message);
   }
-);
+});

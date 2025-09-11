@@ -1,69 +1,52 @@
 // src/redux/product/productSlice.js
-import { createSlice } from "@reduxjs/toolkit";
-import {
-  fetchProducts,
-  fetchProductById,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-} from "./productThunks";
+import { createSlice } from '@reduxjs/toolkit';
+import { createProduct, deleteProduct, getProducts, updateProduct } from './productThunks';
+
 
 const initialState = {
-  products: [],
-  selectedProduct: null,
+  list: [],
   loading: false,
   error: null,
+  success: false,
 };
 
 const productSlice = createSlice({
-  name: "products",
+  name: 'product',
   initialState,
   reducers: {
-    clearSelectedProduct: (state) => {
-      state.selectedProduct = null;
+    clearProductState: (state) => {
+      state.error = null;
+      state.success = false;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch All
-      .addCase(fetchProducts.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchProducts.fulfilled, (state, action) => {
-        state.loading = false;
-        state.products = action.payload;
-      })
-      .addCase(fetchProducts.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+      .addCase(getProducts.pending, (state) => { state.loading = true; state.error = null; })
+      .addCase(getProducts.fulfilled, (state, action) => { state.loading = false; state.list = action.payload; })
+      .addCase(getProducts.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
 
-      // Fetch By ID
-      .addCase(fetchProductById.fulfilled, (state, action) => {
-        state.selectedProduct = action.payload;
-      })
+      .addCase(createProduct.pending, (state) => { state.loading = true; state.error = null; state.success = false; })
+      .addCase(createProduct.fulfilled, (state, action) => { state.loading = false; state.list.push(action.payload); state.success = true; })
+      .addCase(createProduct.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
 
-      // Create
-      .addCase(createProduct.fulfilled, (state, action) => {
-        state.products = action.payload;
-      })
-
-      // Update
+      .addCase(updateProduct.pending, (state) => { state.loading = true; state.error = null; state.success = false; })
       .addCase(updateProduct.fulfilled, (state, action) => {
-        const index = state.products.findIndex(
-          (p) => p._id === action.payload._id
-        );
-        if (index !== -1) state.products[index] = action.payload;
+        state.loading = false;
+        const idx = state.list.findIndex((p) => p._id === action.payload._id);
+        if (idx !== -1) state.list[idx] = action.payload;
+        state.success = true;
       })
+      .addCase(updateProduct.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
 
-      // Delete
+      .addCase(deleteProduct.pending, (state) => { state.loading = true; state.error = null; state.success = false; })
       .addCase(deleteProduct.fulfilled, (state, action) => {
-        state.products = state.products.filter((p) => p._id !== action.payload);
-      });
+        state.loading = false;
+        state.list = state.list.filter((p) => p._id !== action.payload);
+        state.success = true;
+      })
+      .addCase(deleteProduct.rejected, (state, action) => { state.loading = false; state.error = action.payload; });
   },
 });
 
-export const { clearSelectedProduct } = productSlice.actions;
-
+export const { clearProductState } = productSlice.actions;
 export default productSlice.reducer;

@@ -20,10 +20,25 @@ import Config from "./config/env.config.js";
 const app = express();
 
 //middleware
+// CORS
+const allowedOrigins = Array.from(
+  new Set(
+    String(Config.CLIENT_URL || "")
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean)
+      .concat(["http://localhost:5173", "http://localhost:5174"]) // dev defaults
+  )
+);
+
 app.use(
   cors({
-    origin: Config.CLIENT_URL, // Allow requests from the client URL
-    credentials: true, // Allow cookies to be sent
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true); // non-browser or same-origin
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`Origin not allowed by CORS: ${origin}`));
+    },
+    credentials: true,
   })
 );
 

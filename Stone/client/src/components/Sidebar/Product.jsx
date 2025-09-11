@@ -1,190 +1,227 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  TextField,
-  MenuItem,
-  Button,
-  Select,
-  InputLabel,
-  FormControl,
+  Box, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Select, MenuItem, InputLabel, FormControl, Snackbar,
+  TableContainer, Paper, Table, TableHead, TableRow, TableCell,
+  TableBody, CircularProgress, IconButton, Typography
 } from '@mui/material';
 
+import { useDispatch, useSelector } from 'react-redux';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+
+import {
+  createProduct,
+  deleteProduct,
+  getProducts,
+  updateProduct
+} from '../../redux/product/productThunks';
+
+import { clearProductState } from '../../redux/product/productSlice';
+
 const Product = () => {
-  const [formData, setFormData] = useState({
-    product_name: '',
-    sku: '',
-    barcode: '',
-    category: '',
-    brand: '',
-    unit: '',
-    hsn_code: '',
-    tax_percent: '',
-    mrp: '',
-    purchase_rate: '',
-    sales_rate: '',
-    qty: '',
-    min_qty: '',
-    reorder_level: '',
-    expiry_date: '',
-    supplier: '',
-    weight_per_packet: '',
-    status: 'Active',
-    remark: '',
+  const dispatch = useDispatch();
+  const { loading, error, success, list } = useSelector((state) => state.product);
+
+  const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState({
+    product_name: '', mrp: '', purchase_rate: '', sales_rate: '',
+    qty: '', min_qty: '', remark: '', weight_per_packet: '', status: 'Active',
   });
 
+  useEffect(() => {
+    dispatch(getProducts());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (success) {
+      setOpen(false);
+      dispatch(getProducts());
+    }
+    const timer = setTimeout(() => dispatch(clearProductState()), 3000);
+    return () => clearTimeout(timer);
+  }, [success, dispatch]);
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const openForm = (prod = null) => {
+    if (prod) {
+      setEditId(prod._id);
+      setForm({
+        product_name: prod.product_name || '',
+        mrp: prod.mrp || '',
+        purchase_rate: prod.purchase_rate || '',
+        sales_rate: prod.sales_rate || '',
+        qty: prod.qty || '',
+        min_qty: prod.min_qty || '',
+        remark: prod.remark || '',
+        weight_per_packet: prod.weight_per_packet || '',
+        status: prod.status || 'Active',
+      });
+    } else {
+      setEditId(null);
+      setForm({
+        product_name: '', mrp: '', purchase_rate: '', sales_rate: '',
+        qty: '', min_qty: '', remark: '', weight_per_packet: '', status: 'Active',
+      });
+    }
+    setOpen(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Submitted:', formData);
-    // Submit to backend here
+
+    const data = {
+      ...form,
+      mrp: parseFloat(form.mrp),
+      purchase_rate: parseFloat(form.purchase_rate),
+      sales_rate: parseFloat(form.sales_rate),
+      qty: parseInt(form.qty, 10),
+      min_qty: parseInt(form.min_qty, 10),
+    };
+
+    if (editId) {
+      dispatch(updateProduct({ id: editId, data }));
+    } else {
+      dispatch(createProduct(data));
+    }
   };
 
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      dispatch(deleteProduct(id));
+    }
+  };
+
+  const closeSnackbar = () => dispatch(clearProductState());
+
   return (
-    <div className="max-w-7xl mx-auto mt-0 p-4 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-        Add Product
-      </h2>
+    <Box maxWidth="lg" mx="auto" mt={4} p={2}>
+      <Typography variant="h5" align="center">Product Management</Typography>
+      <Box textAlign="center" mb={2}>
+        <Button variant="contained" onClick={() => openForm()}>Create Product</Button>
+      </Box>
 
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
-      >
-        {/* Text Inputs */}
-        {[
-          ['Product Name', 'product_name'],
-          ['SKU', 'sku'],
-          ['Barcode', 'barcode'],
-          ['Brand', 'brand'],
-          ['Unit (e.g., pcs, kg)', 'unit'],
-          ['HSN Code', 'hsn_code'],
-          ['Tax Percent (%)', 'tax_percent'],
-          ['MRP', 'mrp'],
-          ['Purchase Rate', 'purchase_rate'],
-          ['Sales Rate', 'sales_rate'],
-          ['Quantity', 'qty'],
-          ['Min Quantity', 'min_qty'],
-          ['Reorder Level', 'reorder_level'],
-          ['Weight per Packet', 'weight_per_packet'],
-        ].map(([label, name]) => (
-          <div key={name}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {label}
-            </label>
-            <TextField
-              name={name}
-              type={
-                name.includes('rate') ||
-                name === 'qty' ||
-                name.includes('tax') ||
-                name.includes('mrp')
-                  ? 'number'
-                  : 'text'
-              }
-              value={formData[name]}
-              onChange={handleChange}
-              fullWidth
-              variant="outlined"
-            />
-          </div>
-        ))}
+      {/* Dialog Form */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>{editId ? 'Edit Product' : 'Add Product'}</DialogTitle>
 
-        {/* Category */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Category
-          </label>
-          <FormControl fullWidth>
-            <Select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-            >
-              <MenuItem value="electronics">Electronics</MenuItem>
-              <MenuItem value="clothing">Clothing</MenuItem>
-              <MenuItem value="food">Food</MenuItem>
-            </Select>
-          </FormControl>
-        </div>
+        {/* ✅ Wrap the DialogContent & DialogActions inside a form */}
+        <form onSubmit={handleSubmit}>
+          <DialogContent>
+            <Box display="grid" gap={2} mt={1} gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }}>
+              {[
+                { name: 'product_name', label: 'Product Name', type: 'text' },
+                { name: 'mrp', label: 'MRP', type: 'number' },
+                { name: 'purchase_rate', label: 'Purchase Rate', type: 'number' },
+                { name: 'sales_rate', label: 'Sales Rate', type: 'number' },
+                { name: 'qty', label: 'Quantity', type: 'number' },
+                { name: 'min_qty', label: 'Min Quantity', type: 'number' },
+                { name: 'weight_per_packet', label: 'Weight Per Packet', type: 'text' },
+              ].map((f) => (
+                <TextField
+                  key={f.name}
+                  label={f.label}
+                  name={f.name}
+                  type={f.type}
+                  value={form[f.name]}
+                  onChange={handleChange}
+                  fullWidth
+                  required={['product_name', 'mrp', 'purchase_rate', 'sales_rate', 'qty'].includes(f.name)}
+                  disabled={loading}
+                />
+              ))}
 
-        {/* Supplier */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Supplier
-          </label>
-          <FormControl fullWidth>
-            <Select
-              name="supplier"
-              value={formData.supplier}
-              onChange={handleChange}
-            >
-              <MenuItem value="supplier1">Supplier 1</MenuItem>
-              <MenuItem value="supplier2">Supplier 2</MenuItem>
-              <MenuItem value="supplier3">Supplier 3</MenuItem>
-            </Select>
-          </FormControl>
-        </div>
+              <FormControl fullWidth>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  name="status"
+                  value={form.status}
+                  onChange={handleChange}
+                  disabled={loading}
+                >
+                  <MenuItem value="Active">Active</MenuItem>
+                  <MenuItem value="Inactive">Inactive</MenuItem>
+                </Select>
+              </FormControl>
 
-        {/* Expiry Date */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Expiry Date
-          </label>
-          <TextField
-            name="expiry_date"
-            type="date"
-            value={formData.expiry_date}
-            onChange={handleChange}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-          />
-        </div>
+              <TextField
+                label="Remark"
+                name="remark"
+                value={form.remark}
+                onChange={handleChange}
+                fullWidth
+                multiline
+                rows={3}
+                disabled={loading}
+              />
+            </Box>
+          </DialogContent>
 
-        {/* Status */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Status
-          </label>
-          <FormControl fullWidth>
-            <Select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-            >
-              <MenuItem value="Active">Active</MenuItem>
-              <MenuItem value="Inactive">Inactive</MenuItem>
-            </Select>
-          </FormControl>
-        </div>
+          <DialogActions>
+            <Button onClick={() => setOpen(false)} disabled={loading}>Cancel</Button>
+            <Button type="submit" variant="contained" disabled={loading}>
+              {loading ? <CircularProgress size={24} /> : editId ? 'Update' : 'Save'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
 
-        {/* Remark - full width */}
-        <div className="md:col-span-3">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Remark
-          </label>
-          <TextField
-            name="remark"
-            value={formData.remark}
-            onChange={handleChange}
-            fullWidth
-            multiline
-            rows={3}
-          />
-        </div>
+      {/* Snackbars */}
+      <Snackbar open={!!success} autoHideDuration={3000} message="Operation successful!" onClose={closeSnackbar} />
+      <Snackbar open={!!error} autoHideDuration={4000} message={`Error: ${error}`} onClose={closeSnackbar} />
 
-        {/* Submit Button - full width */}
-        <div className="md:col-span-3 text-center mt-4">
-          <Button type="submit" variant="contained" color="primary">
-            Save Product
-          </Button>
-        </div>
-      </form>
-    </div>
+      {/* Products Table */}
+      {loading && !list.length ? (
+        <Box textAlign="center"><CircularProgress /></Box>
+      ) : (
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Product Name</TableCell>
+                <TableCell>MRP</TableCell>
+                <TableCell>Purchase Rate</TableCell>
+                <TableCell>Sales Rate</TableCell>
+                <TableCell>Qty</TableCell>
+                <TableCell>Min Qty</TableCell>
+                <TableCell>Remark</TableCell>
+                <TableCell>Weight/Packet</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="center">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {list.map((prod) => (
+                <TableRow key={prod._id}>
+                  <TableCell>{prod.product_name}</TableCell>
+                  <TableCell>{prod.mrp}</TableCell>
+                  <TableCell>{prod.purchase_rate}</TableCell>
+                  <TableCell>{prod.sales_rate}</TableCell>
+                  <TableCell>{prod.qty}</TableCell>
+                  <TableCell>{prod.min_qty}</TableCell>
+                  <TableCell>{prod.remark}</TableCell>
+                  <TableCell>{prod.weight_per_packet}</TableCell>
+                  <TableCell>{prod.status}</TableCell>
+                  <TableCell align="center">
+                    <IconButton onClick={() => openForm(prod)} disabled={loading}><EditIcon /></IconButton>
+                    <IconButton onClick={() => handleDelete(prod._id)} disabled={loading}><DeleteIcon /></IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {!list.length && !loading && (
+                <TableRow>
+                  <TableCell colSpan={10} align="center">No products found.</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
   );
 };
 

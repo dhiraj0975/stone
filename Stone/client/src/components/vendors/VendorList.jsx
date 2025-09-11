@@ -41,7 +41,7 @@ export default function VendorList() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {vendors.map((vendor) => (
-              <tr key={vendor._id}>
+              <tr key={vendor._id || vendor.id}>
                 <td className="px-6 py-4 whitespace-nowrap">{vendor.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{vendor.mobile_no}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{vendor.firm_name}</td>
@@ -58,7 +58,7 @@ export default function VendorList() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
-                    onClick={() => handleDelete(vendor._id)}
+                    onClick={() => handleDelete(vendor._id || vendor.id)}
                     className="text-red-600 hover:text-red-900"
                   >
                     Delete
