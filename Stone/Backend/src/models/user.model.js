@@ -8,6 +8,7 @@ const findByEmail = (email, callback) => {
   });
 };
 
+
 // Find user by ID
 const findById = (id, callback) => {
   db.query(
