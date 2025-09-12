@@ -3,18 +3,18 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
+
 // Pages & Components
 import Login from "../pages/auth/Login";
 import Dashboard from "../components/Dashboard/Dashboard";
 import VendorPage from "../components/vendors/VendorPage";
 import PrivateRoute from '../components/PrivateRoute'
-
 import Spinner from "../components/Spinner";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
-
 //import PurchaseOrder from "../components/Sidebar/PurchaseOrder";
 import Product from "../components/Sidebar/Product";
 import ProductionEntryForm from "../components/Sidebar/ProductionEntryForm";
+import Categories from "../components/Categories/Categories";
 
 const AppRoute = () => {
   const { loading } = useSelector((state) => state.alerts);
@@ -28,7 +28,7 @@ const AppRoute = () => {
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/vendor" element={<VendorPage />} />
-          
+            <Route path="/category" element={<Categories />} />
             <Route path="/bom" element={<h1>BOM</h1>} />
             <Route path="/production" element={<ProductionEntryForm />} />
             <Route path="/inventory" element={<h1>Inventory</h1>} />

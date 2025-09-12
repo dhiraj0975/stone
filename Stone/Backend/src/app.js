@@ -11,8 +11,8 @@ const app = express();
 // Allowed origins (local + env)
 const allowedOrigins = [
   process.env.FRONTEND_URL,   // e.g. https://myapp.com
-  "http://localhost:5173",
-  "http://localhost:5174"    // React local dev
+  "",
+  ""    // React local dev
     // Another localhost option
 ];
 
@@ -44,6 +44,7 @@ app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/vendors", require("./routes/vendor.routes"));
 app.use("/api/products", require("./routes/product.routes"));
 app.use("/api/purchase-orders", require("./routes/purchaseOrder.routes"));
+app.use("/api/categories", require("./routes/category.routes"));
 
 // Export app
 module.exports = app;

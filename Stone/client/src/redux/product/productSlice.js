@@ -22,20 +22,30 @@ const productSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getProducts.pending, (state) => { state.loading = true; state.error = null; })
-      .addCase(getProducts.fulfilled, (state, action) => { state.loading = false; state.list = action.payload; })
+     .addCase(getProducts.fulfilled, (state, action) => { 
+  state.loading = false; 
+  state.list = action.payload.data; // ✅ use data array from response
+})
+
       .addCase(getProducts.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
 
       .addCase(createProduct.pending, (state) => { state.loading = true; state.error = null; state.success = false; })
-      .addCase(createProduct.fulfilled, (state, action) => { state.loading = false; state.list.push(action.payload); state.success = true; })
+     .addCase(createProduct.fulfilled, (state, action) => { 
+  state.loading = false; 
+  state.list.push(action.payload.data); // ✅ push the actual product object
+  state.success = true; 
+})
+
       .addCase(createProduct.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
 
       .addCase(updateProduct.pending, (state) => { state.loading = true; state.error = null; state.success = false; })
-      .addCase(updateProduct.fulfilled, (state, action) => {
-        state.loading = false;
-        const idx = state.list.findIndex((p) => p._id === action.payload._id);
-        if (idx !== -1) state.list[idx] = action.payload;
-        state.success = true;
-      })
+     .addCase(updateProduct.fulfilled, (state, action) => {
+  state.loading = false;
+  const idx = state.list.findIndex((p) => p._id === action.payload.data._id);
+  if (idx !== -1) state.list[idx] = action.payload.data;
+  state.success = true;
+})
+
       .addCase(updateProduct.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
 
       .addCase(deleteProduct.pending, (state) => { state.loading = true; state.error = null; state.success = false; })

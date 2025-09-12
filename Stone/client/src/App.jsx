@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import Spinner from "./components/Spinner";
 import { Toaster } from "react-hot-toast";
 
+
 const App = () => {
   const { loading } = useSelector((state) => state.alerts);
 

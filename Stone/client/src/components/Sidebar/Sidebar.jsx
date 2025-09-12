@@ -21,6 +21,7 @@ const Sidebar = () => {
   const mainMenu = [
     { name: "Dashboard", path: "/", icon: <FiHome size={20} /> },
     { name: "Vendor Master", path: "/vendor", icon: <FiUsers size={20} /> },
+    { name: "Categories", path: "/category", icon: <FiUsers size={20} /> },
     { name: "Product", path: "/product", icon: <FiPackage size={20} /> },
     { name: "Purchase Order", path: "/purchase-order", icon: <FiShoppingBag size={20} /> },
     { name: "BOM", path: "/bom", icon: <FiLayers size={20} /> },
