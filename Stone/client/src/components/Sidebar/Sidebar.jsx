@@ -23,7 +23,7 @@ const Sidebar = () => {
     { name: "Vendor Master", path: "/vendor", icon: <FiUsers size={20} /> },
     { name: "Categories", path: "/category", icon: <FiUsers size={20} /> },
     { name: "Product", path: "/product", icon: <FiPackage size={20} /> },
-    { name: "Purchase Order", path: "/purchase-order", icon: <FiShoppingBag size={20} /> },
+    { name: "Purchases", path: "/purchases", icon: <FiShoppingBag size={20} /> },
     { name: "BOM", path: "/bom", icon: <FiLayers size={20} /> },
     { name: "Production Entry", path: "/production", icon: <FiPackage size={20} /> },
     { name: "Inventory", path: "/inventory", icon: <FiPieChart size={20} /> },

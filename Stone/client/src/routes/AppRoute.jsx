@@ -15,6 +15,7 @@ import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import Product from "../components/Sidebar/Product";
 import ProductionEntryForm from "../components/Sidebar/ProductionEntryForm";
 import Categories from "../components/Categories/Categories";
+import Purchases from "../components/purchase/Purchases";
 
 const AppRoute = () => {
   const { loading } = useSelector((state) => state.alerts);
@@ -34,6 +35,7 @@ const AppRoute = () => {
             <Route path="/inventory" element={<h1>Inventory</h1>} />
             <Route path="/invoicing" element={<h1>Invoicing</h1>} />
             <Route path="/product" element={<Product />} />
+             <Route path="/purchases" element={<Purchases/>} />
           </Route>
         
         {/* 🌐 Public routes (no layout) */}

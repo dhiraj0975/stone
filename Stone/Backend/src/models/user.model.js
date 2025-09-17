@@ -4,10 +4,9 @@ const db = require("../config/db.js");
 const findByEmail = (email, callback) => {
   db.query("SELECT * FROM users WHERE email = ?", [email], (err, results) => {
     if (err) return callback(err, null);
-    callback(null, results[0]);
+    callback(null, results[0]); // ek hi user return karega
   });
 };
-
 
 // Find user by ID
 const findById = (id, callback) => {
@@ -28,7 +27,7 @@ const createUser = (name, email, hashedPassword, role, callback) => {
     [name, email, hashedPassword, role],
     (err, result) => {
       if (err) return callback(err, null);
-      callback(null, result.insertId);
+      callback(null, result.insertId); // naya user ka id return karega
     }
   );
 };
