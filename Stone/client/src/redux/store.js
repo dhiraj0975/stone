@@ -6,6 +6,7 @@ import alertsReducer from "./alertSlice";
 import vendorReducer from "../redux/vender/vendorSlice";
 import categoriesReducer from "../redux/categorys/categories.Slice.js";
 import purchasesReducer from "../redux/purchase/purchaseSlice.js";
+import purchaseOrderReducer from "../redux/purchaseOrders/purchaseOrderSlice.js";
 
 
 const store = configureStore({
@@ -16,6 +17,7 @@ const store = configureStore({
      vendor: vendorReducer, 
      categories: categoriesReducer,
       purchases: purchasesReducer,
+      purchaseOrders: purchaseOrderReducer,
      
 
     

@@ -19,10 +19,10 @@ export default function PurchaseList() {
       {list.length === 0 ? (
         <p>No purchases found</p>
       ) : (
-        <table className="w-full border-collapse border border-gray-300">
+        <table className="w-full text-center border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border p-2">#</th>
+              <th className="border p-2">S/No</th>
               <th className="border p-2">Vendor</th>
               <th className="border p-2">Bill No</th>
               <th className="border p-2">Bill Date</th>

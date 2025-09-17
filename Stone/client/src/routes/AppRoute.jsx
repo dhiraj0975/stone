@@ -16,6 +16,7 @@ import Product from "../components/Sidebar/Product";
 import ProductionEntryForm from "../components/Sidebar/ProductionEntryForm";
 import Categories from "../components/Categories/Categories";
 import Purchases from "../components/purchase/Purchases";
+import PurchaseOrders from "../components/PurchaseOrder/PurchaseOrders";
 
 const AppRoute = () => {
   const { loading } = useSelector((state) => state.alerts);
@@ -36,6 +37,7 @@ const AppRoute = () => {
             <Route path="/invoicing" element={<h1>Invoicing</h1>} />
             <Route path="/product" element={<Product />} />
              <Route path="/purchases" element={<Purchases/>} />
+             <Route path="/purchase-orders" element={<PurchaseOrders/>} />
           </Route>
         
         {/* 🌐 Public routes (no layout) */}
