@@ -11,8 +11,8 @@ const app = express();
 // Allowed origins (local + env)
 const allowedOrigins = [
   process.env.FRONTEND_URL,   // e.g. https://myapp.com
-  "",
-  ""    // React local dev
+  "https://stone-fontend.vercel.app",
+   // React local dev
     // Another localhost option
 ];
 
