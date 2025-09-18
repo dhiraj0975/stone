@@ -5,7 +5,7 @@ const PurchaseOrder = {
   create: async (data) => {
     const sql = `
       INSERT INTO purchase_orders 
-      (po_no, vendor_id, date, bill_date, address, mobile_no, gst_no, place_of_supply, terms_condition, total_amount, gst_amount, final_amount) 
+      (po_no, vendor_id, date, bill_time, address, mobile_no, gst_no, place_of_supply, terms_condition, total_amount, gst_amount, final_amount) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
@@ -17,7 +17,7 @@ const PurchaseOrder = {
       data.po_no || "",
       vendorId,
       data.date || null,
-      data.bill_date || null,
+      data.bill_time || null,
       data.address || "",
       data.mobile_no || "",
       data.gst_no || "",
@@ -50,7 +50,7 @@ const PurchaseOrder = {
   update: async (id, data) => {
     const sql = `
       UPDATE purchase_orders SET
-      po_no = ?, vendor_id = ?, date = ?, bill_date = ?, address = ?, mobile_no = ?, 
+      po_no = ?, vendor_id = ?, date = ?, bill_time = ?, address = ?, mobile_no = ?, 
       gst_no = ?, place_of_supply = ?, terms_condition = ?, total_amount = ?, gst_amount = ?, final_amount = ?
       WHERE id = ?
     `;
@@ -62,7 +62,7 @@ const PurchaseOrder = {
       data.po_no || "",
       vendorId,
       data.date || null,
-      data.bill_date || null,
+      data.bill_time || null,
       data.address || "",
       data.mobile_no || "",
       data.gst_no || "",

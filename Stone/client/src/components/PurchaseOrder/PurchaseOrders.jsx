@@ -5,11 +5,11 @@ import PurchaseOrderDetails from "./PurchaseOrderDetails";
 
 export default function PurchaseOrders() {
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className=" bg-gray-100 min-h-screen ">
       <h1 className="text-2xl font-bold mb-6">Manage Purchase Orders</h1>
 
       {/* Create PO Form */}
-      <div className="mb-10">
+      <div className="overflow-auto mb-10">
         <PurchaseOrderForm />
       </div>
 

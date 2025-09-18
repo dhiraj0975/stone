@@ -5,7 +5,7 @@ const purchaseController = {
   // ✅ Create Purchase + Items
 create: async (req, res) => {
   try {
-    const { vendor_id, bill_no, bill_date, total_amount, items } = req.body;
+    const { vendor_id, bill_no, bill_time, total_amount, items } = req.body;
 
     if (!Array.isArray(items)) {
       return res.status(400).json({ error: "items must be an array" });
@@ -15,7 +15,7 @@ create: async (req, res) => {
     const purchase_id = await Purchase.create({
       vendor_id,
       bill_no,
-      bill_date,
+      bill_time,
       total_amount,
       status: "Active",
       items, // <-- ye pass karna important hai
@@ -32,14 +32,16 @@ create: async (req, res) => {
 
 ,
   // ✅ Get All Purchases
-  getAll: async (req, res) => {
-    try {
-      const purchases = await Purchase.findAll();
-      res.json(purchases);
-    } catch (err) {
-      res.status(500).json({ error: err.message }, purchases);
-    }
-  },
+  // ✅ Get All Purchases
+getAll: async (req, res) => {
+  try {
+    const purchases = await Purchase.findAll();
+    res.json(purchases);
+  } catch (err) {
+    res.status(500).json({ error: err.message }); // ✅ sirf error bhejna hai
+  }
+},
+
 
   // ✅ Get Purchase + Items by ID
   getById: async (req, res) => {

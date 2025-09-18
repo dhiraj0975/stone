@@ -28,7 +28,7 @@ const PurchaseOrderDetails = () => {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <p><strong>PO No:</strong> {selected.po_no}</p>
         <p><strong>Date:</strong> {selected.date}</p>
-        <p><strong>Bill Date:</strong> {selected.bill_date}</p>
+        <p><strong>Bill Date:</strong> {selected.bill_time}</p>
         <p><strong>Vendor ID:</strong> {selected.vendor_id}</p>
         <p><strong>Mobile:</strong> {selected.mobile_no}</p>
         <p><strong>GST No:</strong> {selected.gst_no}</p>
@@ -61,8 +61,8 @@ const PurchaseOrderDetails = () => {
                 <td className="border p-2 text-center">{item.qty}</td>
                 <td className="border p-2 text-right">{item.rate}</td>
                 <td className="border p-2 text-right">{item.amount}</td>
-                <td className="border p-2 text-center">{item.discount_percent}%</td>
-                <td className="border p-2 text-right">{item.discount_amount}</td>
+                <td className="border p-2 text-center">{item.discount_rate}%</td>
+                <td className="border p-2 text-right">{item.discount_total}</td>
               </tr>
             ))
           ) : (

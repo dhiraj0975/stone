@@ -3,15 +3,15 @@
 // const Purchase = {
 //   // ✅ Create Purchase
 //   create: async (data) => {
-//     const { vendor_id, bill_no, bill_date, total_amount, status } = data;
+//     const { vendor_id, bill_no, bill_time, total_amount, status } = data;
 //     const query = `
-//       INSERT INTO purchases (vendor_id, bill_no, bill_date, total_amount, status)
+//       INSERT INTO purchases (vendor_id, bill_no, bill_time, total_amount, status)
 //       VALUES (?, ?, ?, ?, ?)
 //     `;
 //     const [result] = await db.query(query, [
 //       vendor_id,
 //       bill_no,
-//       bill_date,
+//       bill_time,
 //       total_amount,
 //       status || "Active",
 //     ]);
@@ -25,7 +25,7 @@
 //         p.id,
 //         p.vendor_id,
 //         p.bill_no,
-//         p.bill_date,
+//         p.bill_time,
 //         p.total_amount,
 //         p.status,
 //         v.name AS vendor_name,
@@ -39,7 +39,7 @@
 //       LEFT JOIN products pr 
 //         ON pi.product_id = pr.id
 //       GROUP BY 
-//         p.id, p.vendor_id, p.bill_no, p.bill_date, p.total_amount, p.status, v.name, v.firm_name
+//         p.id, p.vendor_id, p.bill_no, p.bill_time, p.total_amount, p.status, v.name, v.firm_name
 //       ORDER BY p.id DESC
 //     `;
 //     const [rows] = await db.query(query);
@@ -53,7 +53,7 @@
 //         p.id,
 //         p.vendor_id,
 //         p.bill_no,
-//         p.bill_date,
+//         p.bill_time,
 //         p.total_amount,
 //         p.status,
 //         v.name AS vendor_name,
@@ -68,7 +68,7 @@
 //         ON pi.product_id = pr.id
 //       WHERE p.id = ?
 //       GROUP BY 
-//         p.id, p.vendor_id, p.bill_no, p.bill_date, p.total_amount, p.status, v.name, v.firm_name
+//         p.id, p.vendor_id, p.bill_no, p.bill_time, p.total_amount, p.status, v.name, v.firm_name
 //     `;
 //     const [rows] = await db.query(query, [id]);
 //     return rows[0];
@@ -84,7 +84,7 @@ const db = require("../config/db"); // mysql2/promise pool
 const Purchase = {
   // 1️⃣ Create new purchase with items
   create: async (data) => {
-    const { vendor_id, bill_no, bill_date, total_amount, status, items } = data;
+    const { vendor_id, bill_no, bill_time, total_amount, status, items } = data;
 
     const conn = await db.getConnection();
     try {
@@ -92,9 +92,9 @@ const Purchase = {
 
       // Insert purchase
       const [purchaseResult] = await conn.query(
-        `INSERT INTO purchases (vendor_id, bill_no, bill_date, total_amount, status)
+        `INSERT INTO purchases (vendor_id, bill_no, bill_time, total_amount, status)
          VALUES (?, ?, ?, ?, ?)`,
-        [vendor_id, bill_no, bill_date, total_amount, status || "Active"]
+        [vendor_id, bill_no, bill_time, total_amount, status || "Active"]
       );
       const purchaseId = purchaseResult.insertId;
 
