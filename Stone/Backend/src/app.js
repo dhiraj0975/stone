@@ -12,6 +12,7 @@ const app = express();
 const allowedOrigins = [
   process.env.FRONTEND_URL,   // e.g. https://myapp.com
   "https://stone-fontend.vercel.app",
+  "http://localhost:5173"
    // React local dev
     // Another localhost option
 ];
