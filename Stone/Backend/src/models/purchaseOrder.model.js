@@ -34,9 +34,41 @@ const PurchaseOrder = {
 
   getAll: async () => {
     const sql = `
-      SELECT po.*, v.name as vendor_name 
-      FROM purchase_orders po 
-      JOIN vendors v ON po.vendor_id = v.id
+      SELECT 
+    po.id AS purchase_order_id,
+    po.po_no,
+    po.date,
+    po.bill_time,
+    v.name AS vendor_name,
+    po.address,
+    po.mobile_no,
+    po.gst_no,
+    po.place_of_supply,
+    po.terms_condition,
+    po.total_amount AS order_total,
+    po.gst_amount AS order_gst,
+    po.final_amount AS order_final,
+    po.status,
+
+    poi.id AS item_id,
+    poi.product_id,
+    poi.hsn_code,
+    poi.qty,
+    poi.rate,
+    poi.amount,
+    poi.discount_per_qty,
+    poi.discount_rate,
+    poi.discount_total,
+    poi.gst_percent,
+    poi.gst_amount AS item_gst,
+    poi.final_amount AS item_final
+
+FROM purchase_orders po
+JOIN purchase_order_items poi 
+    ON po.id = poi.purchase_order_id
+JOIN vendors v 
+    ON po.vendor_id = v.id;
+
     `;
     const [rows] = await db.query(sql);
     return rows;
