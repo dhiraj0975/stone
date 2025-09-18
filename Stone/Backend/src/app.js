@@ -40,6 +40,10 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/", (req, res) => {
+  res.send("🚀 Backend API is running on Vercel!");
+});
+
 // ===============  Routes =================
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/vendors", require("./routes/vendor.routes"));
