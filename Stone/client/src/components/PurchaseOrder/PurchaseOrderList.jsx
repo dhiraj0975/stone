@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPurchaseOrders, deletePurchaseOrder } from "../../redux/purchaseOrders/purchaseOrderSlice";
+import { useNavigate } from "react-router-dom";
+
+
 
 const fx = (n) => (isNaN(n) ? "0.000" : Number(n).toFixed(3));
 
 const PurchaseOrderList = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { list, loading, error } = useSelector((state) => state.purchaseOrders);
   const [open, setOpen] = useState({}); // row expand/collapse
 
@@ -36,7 +40,8 @@ const PurchaseOrderList = () => {
             <th className="border p-2">Taxable Total</th>
             <th className="border p-2">GST Total</th>
             <th className="border p-2">Grand Total</th>
-            <th className="border p-2">Actions</th>
+            <th className="border p-2">Action</th>
+            {/* <th className="border p-2">Actions</th> */}
           </tr>
         </thead>
         <tbody>
@@ -69,11 +74,34 @@ const PurchaseOrderList = () => {
                     <td className="border p-2">{fx(po?.summary?.total_taxable ?? po.total_taxable ?? 0)}</td>
                     <td className="border p-2">{fx(po?.summary?.total_gst ?? po.total_gst ?? 0)}</td>
                     <td className="border p-2 font-semibold">{fx(po?.summary?.grand_total ?? po.grand_total ?? 0)}</td>
-                    <td className="border p-2 text-center">
+                    <td className="border p-2 text-center space-x-2">
+  <button
+    className="px-3 py-1 bg-red-500 text-white rounded"
+    onClick={() => dispatch(deletePurchaseOrder(sid))}
+  >
+    ❌ Delete
+  </button>
+
+ <button
+  className="px-3 py-1 bg-green-500 text-white rounded"
+  onClick={() =>
+  navigate(`/purchases/create/${sid}`, {
+    state: { po }, // pass data for auto-fill
+    replace: false
+  })
+}
+
+>
+  ➕ Purchase
+</button>
+
+</td>
+
+                    {/* <td className="border p-2 text-center">
                       <button className="px-3 py-1 bg-red-500 text-white rounded" onClick={() => dispatch(deletePurchaseOrder(sid))}>
                         ❌ Delete
                       </button>
-                    </td>
+                    </td> */}
                   </tr>
 
                   {open[sid] && (

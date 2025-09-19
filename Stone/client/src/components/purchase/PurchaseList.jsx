@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPurchases } from "../../redux/purchase/purchaseSlice";
 
+
 export default function PurchaseList() {
   const dispatch = useDispatch();
   const { list, loading, error } = useSelector((state) => state.purchases);

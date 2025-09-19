@@ -17,6 +17,7 @@ import ProductionEntryForm from "../components/Sidebar/ProductionEntryForm";
 import Categories from "../components/Categories/Categories";
 import Purchases from "../components/purchase/Purchases";
 import PurchaseOrders from "../components/PurchaseOrder/PurchaseOrders";
+import PurchaseForm from "../components/purchase/PurchaseForm";
 
 const AppRoute = () => {
   const { loading } = useSelector((state) => state.alerts);
@@ -38,6 +39,7 @@ const AppRoute = () => {
             <Route path="/product" element={<Product />} />
              <Route path="/purchases" element={<Purchases/>} />
              <Route path="/purchase-orders" element={<PurchaseOrders/>} />
+             <Route path="/purchases/create/:poId" element={<PurchaseForm />} />
           </Route>
         
         {/* 🌐 Public routes (no layout) */}
