@@ -66,6 +66,8 @@
 // };
 
 
+
+
 const PurchaseOrder = require("../models/purchaseOrder.model");
 const PurchaseOrderItem = require("../models/purchaseOrderItem.model");
 
@@ -98,7 +100,7 @@ const purchaseOrderController = {
         items,
       } = req.body;
 
-      if (!vendor_id || vendor_id === "") {
+      if (!vendor_id) {
         return res.status(400).json({ error: "vendor_id is required" });
       }
 
@@ -124,6 +126,7 @@ const purchaseOrderController = {
       let totalAmount = 0;
       let totalGST = 0;
       let finalAmount = 0;
+      const createdItems = [];
 
       // ✅ Insert items
       for (const item of items) {
@@ -154,7 +157,8 @@ const purchaseOrderController = {
           final_amount,
         };
 
-        await PurchaseOrderItem.create(itemData);
+        const itemResult = await PurchaseOrderItem.create(itemData);
+        createdItems.push({ id: itemResult.insertId, ...itemData });
       }
 
       // ✅ Update totals
@@ -167,7 +171,16 @@ const purchaseOrderController = {
 
       res.status(201).json({
         message: "Purchase Order created successfully",
-        purchase_order_id,
+        purchase_order: {
+          id: purchase_order_id,
+          ...poData,
+          summary: {
+            total_taxable: totalAmount,
+            total_gst: totalGST,
+            grand_total: finalAmount,
+          },
+          items: createdItems,
+        },
       });
     } catch (err) {
       console.error(err);
@@ -178,14 +191,66 @@ const purchaseOrderController = {
   // ✅ Get All Purchase Orders
   getAll: async (req, res) => {
     try {
-      const rows = await PurchaseOrder.getAll();
-      res.json(rows);
+      const poRows = await PurchaseOrder.getAll();
+
+      // Transform rows into grouped POs with items & summary
+      const poMap = {};
+      poRows.forEach((row) => {
+        const poId = row.purchase_order_id;
+        if (!poMap[poId]) {
+          poMap[poId] = {
+            id: poId,
+            po_no: row.po_no,
+            vendor_name: row.vendor_name,
+            date: row.date,
+            bill_time: row.bill_time,
+            address: row.address,
+            mobile_no: row.mobile_no,
+            gst_no: row.gst_no,
+            place_of_supply: row.place_of_supply,
+            terms_condition: row.terms_condition,
+            summary: {
+              total_taxable: 0,
+              total_gst: 0,
+              grand_total: 0,
+            },
+            items: [],
+          };
+        }
+
+        // Add item
+        const item = {
+          id: row.item_id,
+          product_id: row.product_id,
+          hsn_code: row.hsn_code,
+          qty: row.qty,
+          rate: row.rate,
+          amount: row.amount,
+          discount_per_qty: row.discount_per_qty,
+          discount_rate: row.discount_rate,
+          discount_total: row.discount_total,
+          gst_percent: row.gst_percent,
+          gst_amount: row.item_gst,
+          total: row.item_final,
+        };
+
+        poMap[poId].items.push(item);
+
+        // Update summary
+        poMap[poId].summary.total_taxable += row.amount - row.discount_total;
+        poMap[poId].summary.total_gst += row.item_gst;
+        poMap[poId].summary.grand_total += row.item_final;
+      });
+
+      const pos = Object.values(poMap);
+      res.json(pos);
     } catch (err) {
+      console.error(err);
       res.status(500).json({ error: err.message });
     }
   },
 
-  // ✅ Get Single Purchase Order with Items
+  // ✅ Get Single Purchase Order with Items & Summary
   getById: async (req, res) => {
     try {
       const { id } = req.params;
@@ -194,11 +259,25 @@ const purchaseOrderController = {
         return res.status(404).json({ message: "PO not found" });
 
       const itemRows = await PurchaseOrderItem.getByPOId(id);
+
+      // Calculate summary
+      const summary = itemRows.reduce(
+        (acc, item) => {
+          acc.total_taxable += item.amount - item.discount_total;
+          acc.total_gst += item.gst_amount;
+          acc.grand_total += item.final_amount;
+          return acc;
+        },
+        { total_taxable: 0, total_gst: 0, grand_total: 0 }
+      );
+
       res.json({
         ...poRows[0],
         items: itemRows,
+        summary,
       });
     } catch (err) {
+      console.error(err);
       res.status(500).json({ error: err.message });
     }
   },
@@ -211,6 +290,7 @@ const purchaseOrderController = {
       await PurchaseOrder.delete(id);
       res.json({ message: "Purchase Order deleted successfully" });
     } catch (err) {
+      console.error(err);
       res.status(500).json({ error: err.message });
     }
   },

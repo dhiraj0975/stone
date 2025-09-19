@@ -70,18 +70,38 @@ useEffect(() => {
   };
 
   // ✅ Submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
-     console.log("Submitting purchase:", formData); // ✅ check format
-    dispatch(addPurchase(formData));
-    setFormData({
-      vendor_id: "",
-      bill_no: "",
-      bill_date: "",
-      total_amount: 0,
-      items: [],
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  if (!formData.vendor_id) {
+    alert("Vendor select karo!");
+    return;
+  }
+
+  if (!formData.items || formData.items.length === 0) {
+    alert("Kam se kam 1 item add karo!");
+    return;
+  }
+
+  dispatch(addPurchase(formData))
+    .unwrap() // agar createAsyncThunk use kar rahe ho
+    .then(() => {
+      // only reset form on success
+      setFormData({
+        vendor_id: "",
+        bill_no: "",
+        bill_date: "",
+        total_amount: 0,
+        items: [],
+      });
+    })
+    .catch((err) => {
+      // Error aaya, list ko hatao mat
+      alert("PO save nahi hua: " + err.message);
     });
-  };
+};
+
+
 
   return (
     <div className="p-4 bg-white shadow rounded-lg">

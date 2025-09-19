@@ -38,14 +38,23 @@ const PurchaseOrderForm = () => {
 
   const onHeader = (e) => setHeader((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  const onRow = (i, field, value) => {
-    setRows((prev) => {
-      const next = [...prev];
-      const numeric = ["qty", "rate", "d1_percent", "gst_percent"].includes(field);
-      next[i] = { ...next[i], [field]: numeric ? Number(value || 0) : value };
-      return next;
-    });
-  };
+// ✅ Safe Row Update Function
+const onRow = (i, field, value) => {
+  setRows((prev) => {
+    const next = [...prev];
+
+    // Sirf ye fields number me convert honge
+    const numericFields = ["qty", "rate", "d1_percent", "gst_percent"];
+
+    next[i] = {
+      ...next[i],
+      [field]: numericFields.includes(field) ? Number(value || 0) : value
+    };
+
+    return next;
+  });
+};
+
 
   const addRow = () =>
     setRows((p) => [...p, { product_id: "", item_name: "", hsn_code: "", qty: 1, rate: 0, d1_percent: 0, gst_percent: 0 }]);
@@ -117,6 +126,22 @@ const bill_time = `${header.date || ""} ${String(h).padStart(2,'0')}:${m}:00`;
       })
     );
   };
+
+// ✅ Form valid check
+const isFormValid =
+  header.po_no.trim() !== "" &&
+  header.date.trim() !== "" &&
+  header.vendor_id !== "" &&
+  rows.length > 0 &&
+  rows.every(
+    (r) =>
+      String(r.product_id).trim() !== "" &&   // ✅ fix
+      r.item_name.trim() !== "" &&
+      Number(r.qty) > 0 &&
+      Number(r.rate) > 0
+  );
+
+
 
   return (
     <form onSubmit={onSubmit} className="p-3">
@@ -213,22 +238,23 @@ const bill_time = `${header.date || ""} ${String(h).padStart(2,'0')}:${m}:00`;
                   <td className="border px-2 py-1">
                     <div className="flex gap-1">
                       <select
-                        className="border rounded p-1 w-44"
-                        value={r.product_id}
-                        onChange={(e) => {
-                          const pid = e.target.value;
-                          const p = products.find((x) => x.id === pid);
-                          onRow(i, "product_id", pid);
-                          if (p) onRow(i, "item_name", p.product_name || "");
-                        }}
-                      >
-                        <option value="">Select</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.product_name}
-                          </option>
-                        ))}
-                      </select>
+  className="border rounded p-1 w-44"
+  value={r.product_id}
+  onChange={(e) => {
+    const pid = e.target.value; // string
+    const p = products.find((x) => String(x.id) === String(pid)); // ✅ type safe compare
+    onRow(i, "product_id", pid); // product_id ko string hi rakhte hain
+    if (p) onRow(i, "item_name", p.product_name || "");
+  }}
+>
+  <option value="">Select</option>
+  {products.map((p) => (
+    <option key={p.id} value={String(p.id)}> {/* ✅ string value */}
+      {p.product_name}
+    </option>
+  ))}
+</select>
+
                       {/* <input
                         className="border rounded p-1 w-24"
                         placeholder="Item Name"
@@ -320,9 +346,17 @@ const bill_time = `${header.date || ""} ${String(h).padStart(2,'0')}:${m}:00`;
         <button type="button" onClick={addRow} className="px-4 py-2 bg-blue-600 text-white rounded">
           Add Item
         </button>
-        <button type="submit" disabled={loading || productsLoading} className="px-6 py-2 bg-green-700 text-white rounded">
-          {loading ? "Saving..." : "Save PO"}
-        </button>
+<button
+  type="submit"
+  disabled={loading || productsLoading || !isFormValid}
+  className={`px-6 py-2 rounded text-white bg-green-700 transition-opacity duration-200
+    ${loading || productsLoading || !isFormValid ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"}`}
+>
+  {loading ? "Saving..." : "Save PO"}
+</button>
+
+
+
       </div>
     </form>
   );

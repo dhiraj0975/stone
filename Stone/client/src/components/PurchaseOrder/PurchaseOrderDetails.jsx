@@ -6,9 +6,9 @@ import { useParams } from "react-router-dom";
 const PurchaseOrderDetails = () => {
   const { id } = useParams(); // URL se PO id milegi
   const dispatch = useDispatch();
-  const { selected, loading, error } = useSelector(
-    (state) => state.purchaseOrders
-  );
+const { current, loading, error } = useSelector(
+  (state) => state.purchaseOrders
+);
 
   useEffect(() => {
     if (id) {
@@ -18,7 +18,7 @@ const PurchaseOrderDetails = () => {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
-  if (!selected) return <p>No Purchase Order Found</p>;
+if (!current) return <p>No Purchase Order Found</p>;
 
   return (
     <div className="p-6 bg-white shadow-md rounded-2xl">
@@ -26,14 +26,14 @@ const PurchaseOrderDetails = () => {
 
       {/* ✅ PO Header Info */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <p><strong>PO No:</strong> {selected.po_no}</p>
-        <p><strong>Date:</strong> {selected.date}</p>
-        <p><strong>Bill Date:</strong> {selected.bill_time}</p>
-        <p><strong>Vendor ID:</strong> {selected.vendor_id}</p>
-        <p><strong>Mobile:</strong> {selected.mobile_no}</p>
-        <p><strong>GST No:</strong> {selected.gst_no}</p>
-        <p><strong>Delivery Place:</strong> {selected.place_of_delivery}</p>
-        <p><strong>Terms:</strong> {selected.terms_and_conditions}</p>
+        <p><strong>PO No:</strong> {current.po_no}</p>
+        <p><strong>Date:</strong> {current.date}</p>
+        <p><strong>Bill Date:</strong> {current.bill_time}</p>
+        <p><strong>Vendor ID:</strong> {current.vendor_id}</p>
+        <p><strong>Mobile:</strong> {current.mobile_no}</p>
+        <p><strong>GST No:</strong> {current.gst_no}</p>
+        <p><strong>Delivery Place:</strong> {current.place_of_delivery}</p>
+        <p><strong>Terms:</strong> {current.terms_and_conditions}</p>
       </div>
 
       {/* ✅ PO Items Table */}
@@ -52,8 +52,8 @@ const PurchaseOrderDetails = () => {
           </tr>
         </thead>
         <tbody>
-          {selected.items && selected.items.length > 0 ? (
-            selected.items.map((item, index) => (
+          {current.items && current.items.length > 0 ? (
+            current.items.map((item, index) => (
               <tr key={item.id}>
                 <td className="border p-2 text-center">{index + 1}</td>
                 <td className="border p-2">{item.item_name}</td>
@@ -77,8 +77,8 @@ const PurchaseOrderDetails = () => {
 
       {/* ✅ GST + Grand Total */}
       <div className="mt-6">
-        <p><strong>GST %:</strong> {selected.gst_percent}</p>
-        <p><strong>Total Amount:</strong> {selected.total_amount}</p>
+        <p><strong>GST %:</strong> {current.gst_percent}</p>
+        <p><strong>Total Amount:</strong> {current.total_amount}</p>
       </div>
     </div>
   );

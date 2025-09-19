@@ -76,18 +76,27 @@ const purchaseOrderSlice = createSlice({
         state.error = action.error.message;
       })
 
-      // Create
-      .addCase(createPurchaseOrder.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(createPurchaseOrder.fulfilled, (state, action) => {
-        state.loading = false;
-        state.list.push(action.payload);
-      })
-      .addCase(createPurchaseOrder.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      })
+// Create Purchase Order – Safe Version
+.addCase(createPurchaseOrder.pending, (state) => {
+  state.loading = true;
+  state.error = null; // previous error reset
+})
+.addCase(createPurchaseOrder.fulfilled, (state, action) => {
+  state.loading = false;
+
+  const po = action.payload?.purchase_order; // ✅ extract correct PO object
+  if (po && po.id) {
+    state.list.push(po);
+  } else {
+    state.error = "Invalid PO returned from server";
+  }
+})
+
+.addCase(createPurchaseOrder.rejected, (state, action) => {
+  state.loading = false;
+  // action.error.message may be undefined in some cases, fallback to generic
+  state.error = action.error?.message || "Failed to create PO";
+})
 
       // Delete
       .addCase(deletePurchaseOrder.fulfilled, (state, action) => {
