@@ -46,12 +46,12 @@ app.get("/", (req, res) => {
 });
 
 // ===============  Routes =================
-app.use("/api/auth", require("./routes/auth.routes"));
-app.use("/api/vendors", require("./routes/vendor.routes"));
-app.use("/api/products", require("./routes/product.routes"));
-app.use("/api/categories", require("./routes/category.routes"));
-app.use("/api/purchases", require("./routes/purchase.routes"));
-app.use("/api/purchase-orders", require("./routes/purchaseOrder.routes"));
+app.use("/api/auth", require("./routes/auth.routes.js"));
+app.use("/api/vendors", require("./routes/vendor.routes.js"));
+app.use("/api/products", require("./routes/product.routes.js"));
+app.use("/api/categories", require("./routes/Category.routes.js"));
+app.use("/api/purchases", require("./routes/purchase.routes.js"));
+app.use("/api/purchase-orders", require("./routes/purchaseOrder.routes.js"));
 
 // Export app
 module.exports = app;
