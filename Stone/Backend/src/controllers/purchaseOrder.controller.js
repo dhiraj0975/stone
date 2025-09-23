@@ -294,6 +294,134 @@ const purchaseOrderController = {
       res.status(500).json({ error: err.message });
     }
   },
+  // ✅ Generate Invoice (bill)
+  getInvoice: async (req, res) => {
+    try {
+      const { id } = req.params; // purchase_order_id
+      const poRows = await PurchaseOrder.getById(id);
+      if (poRows.length === 0) {
+        return res.status(404).json({ message: "PO not found" });
+      }
+
+      const po = poRows[0];
+      const items = await PurchaseOrderItem.getByPOId(id);
+
+      const summary = items.reduce(
+        (acc, item) => {
+          acc.total_taxable += item.amount - item.discount_total;
+          acc.total_gst += item.gst_amount;
+          acc.grand_total += item.final_amount;
+          return acc;
+        },
+        { total_taxable: 0, total_gst: 0, grand_total: 0 }
+      );
+
+      res.json({
+        invoiceNo: `INV-${po.id}`,
+        date: po.date,
+        vendor: {
+          name: po.vendor_name,
+          address: po.address,
+          gst_no: po.gst_no,
+        },
+        items,
+        summary,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  },
+  // ✅ Update Purchase Order & its Items
+update: async (req, res) => {
+  try {
+    const { id } = req.params; // purchase_order_id
+    const { po_no, vendor_id, date, bill_time, address, mobile_no, gst_no, place_of_supply, terms_condition, items } = req.body;
+
+    // Update PO header
+    await PurchaseOrder.update(id, {
+      po_no,
+      vendor_id: Number(vendor_id),
+      date,
+      bill_time,
+      address,
+      mobile_no,
+      gst_no,
+      place_of_supply,
+      terms_condition,
+      total_amount: 0, // Will recalc after items
+      gst_amount: 0,
+      final_amount: 0,
+    });
+
+    let totalAmount = 0;
+    let totalGST = 0;
+    let finalAmount = 0;
+
+    // Update / Insert items
+    for (const item of items) {
+      const { amount, discount_rate, discount_total, gst_amount, final_amount } = calculateItem(item);
+      totalAmount += amount - discount_total;
+      totalGST += gst_amount;
+      finalAmount += final_amount;
+
+      if (item.id) {
+        // Update existing item
+        await PurchaseOrderItem.update(item.id, {
+          product_id: Number(item.product_id),
+          hsn_code: item.hsn_code,
+          qty: Number(item.qty),
+          rate: Number(item.rate),
+          amount,
+          discount_per_qty: Number(item.discount_per_qty || 0),
+          discount_rate,
+          discount_total,
+          gst_percent: Number(item.gst_percent || 0),
+          gst_amount,
+          final_amount,
+        });
+      } else {
+        // Create new item if id not exists
+        await PurchaseOrderItem.create({
+          purchase_order_id: id,
+          product_id: Number(item.product_id),
+          hsn_code: item.hsn_code,
+          qty: Number(item.qty),
+          rate: Number(item.rate),
+          amount,
+          discount_per_qty: Number(item.discount_per_qty || 0),
+          discount_rate,
+          discount_total,
+          gst_percent: Number(item.gst_percent || 0),
+          gst_amount,
+          final_amount,
+        });
+      }
+    }
+
+    // Update PO totals after item recalculation
+    await PurchaseOrder.update(id, {
+      po_no,
+      vendor_id: Number(vendor_id),
+      date,
+      bill_time,
+      address,
+      mobile_no,
+      gst_no,
+      place_of_supply,
+      terms_condition,
+      total_amount: totalAmount,
+      gst_amount: totalGST,
+      final_amount: finalAmount,
+    });
+
+    res.json({ message: "Purchase Order updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+},
+
 };
 
 module.exports = purchaseOrderController;

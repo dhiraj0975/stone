@@ -26,7 +26,7 @@ if (!current) return <p>No Purchase Order Found</p>;
 
       {/* ✅ PO Header Info */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <p><strong>PO No:</strong> {current.po_no}</p>
+        <p className=""><strong>PO No:</strong> {current.po_no}</p>
         <p><strong>Date:</strong> {current.date}</p>
         <p><strong>Bill Date:</strong> {current.bill_time}</p>
         <p><strong>Vendor ID:</strong> {current.vendor_id}</p>

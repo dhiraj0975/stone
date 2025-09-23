@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPurchaseOrders, deletePurchaseOrder } from "../../redux/purchaseOrders/purchaseOrderSlice";
 import { useNavigate } from "react-router-dom";
+import { getProducts } from "../../redux/product/productThunks";
 
 
 
@@ -11,10 +12,14 @@ const PurchaseOrderList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { list, loading, error } = useSelector((state) => state.purchaseOrders);
+  const { list: products = [] } = useSelector((state) => state.product);
   const [open, setOpen] = useState({}); // row expand/collapse
+
+  
 
   useEffect(() => {
     dispatch(fetchPurchaseOrders());
+     dispatch(getProducts()); 
   }, [dispatch]);
 
   if (loading) return <p>Loading...</p>;
@@ -27,7 +32,7 @@ const PurchaseOrderList = () => {
       <table className="w-full border text-sm">
         <thead className="bg-gray-100">
           <tr>
-            <th className="border p-2">PO No</th>
+            <th className="border p-2 ">PO No</th>
             <th className="border p-2">Vendor</th>
             <th className="border p-2">Address</th>
             <th className="border p-2">Mobile</th>
@@ -56,7 +61,7 @@ const PurchaseOrderList = () => {
                 <React.Fragment key={sid}>
                   <tr className="odd:bg-white even:bg-gray-50">
                     <td className="border p-2">
-                      <button className="underline" onClick={() => setOpen((o) => ({ ...o, [sid]: !o[sid] }))}>
+                      <button className="underline cursor-pointer text-blue-500" onClick={() => setOpen((o) => ({ ...o, [sid]: !o[sid] }))}>
                         {po.po_no || "-"}
                       </button>
                     </td>
@@ -87,6 +92,7 @@ const PurchaseOrderList = () => {
   onClick={() =>
   navigate(`/purchases/create/${sid}`, {
     state: { po }, // pass data for auto-fill
+    
     replace: false
   })
 }
@@ -132,7 +138,9 @@ const PurchaseOrderList = () => {
                                 {(po.items || []).map((it, idx) => (
                                   <tr key={idx} className="odd:bg-white even:bg-gray-50">
                                     <td className="border p-1">{idx + 1}</td>
-                                    <td className="border p-1">{it.item_name || it.product_name || "-"}</td>
+<td className="border p-1">
+  {it.item_name || products.find(p => String(p.id) === String(it.product_id))?.product_name || "null"}
+</td>
                                     <td className="border p-1">{it.hsn_code || "-"}</td>
                                     <td className="border p-1">{it.qty}</td>
                                     <td className="border p-1">{fx(it.rate)}</td>
@@ -144,6 +152,48 @@ const PurchaseOrderList = () => {
                                     <td className="border p-1">{it.gst_percent ?? 0}</td>
                                     <td className="border p-1">{fx(it.gst_amount ?? 0)}</td>
                                     <td className="border p-1 font-semibold">{fx(it.total ?? 0)}</td>
+                                    <td className="border p-2 text-center space-x-2">
+  <button
+    className="px-3 cursor-pointer active:scale-95 py-1 bg-red-500 text-white rounded"
+    onClick={() => dispatch(deletePurchaseOrder(sid))}
+  >
+    ❌ Delete
+  </button>
+  {/* ✅ Update/Edit Button */}
+<button
+  className="px-3 py-1 cursor-pointer active:scale-95 bg-yellow-500 text-white rounded"
+  onClick={() =>
+    navigate(`/purchase-orders/edit/${sid}`, {
+      state: { po }, // existing PO data pass for autofill
+      replace: false,
+    })
+  }
+>
+  ✏️ Edit
+</button>
+
+
+  <button
+    className="px-3 cursor-pointer active:scale-95 py-1 bg-green-500 text-white rounded"
+    onClick={() =>
+      navigate(`/purchases/create/${sid}`, {
+        state: { po }, // pass data for auto-fill
+        replace: false,
+      })
+    }
+  >
+    ➕ Purchase
+  </button>
+
+  {/* ✅ New Invoice Button */}
+  <button
+    className="px-3 py-1 cursor-pointer active:scale-95 bg-blue-500 text-white rounded"
+    onClick={() => navigate(`/invoice/${sid}`)}
+  >
+    📄 Invoice
+  </button>
+</td>
+
                                   </tr>
                                 ))}
                               </tbody>

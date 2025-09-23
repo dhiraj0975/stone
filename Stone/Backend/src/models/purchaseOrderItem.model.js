@@ -56,6 +56,47 @@ const PurchaseOrderItem = {
     const [result] = await db.query(sql, [poId]);
     return result;
   },
+  update: async (id, data) => {
+  const sql = `
+    UPDATE purchase_orders SET
+      po_no = ?, 
+      vendor_id = ?, 
+      date = ?, 
+      bill_time = ?, 
+      address = ?, 
+      mobile_no = ?, 
+      gst_no = ?, 
+      place_of_supply = ?, 
+      terms_condition = ?, 
+      total_amount = ?, 
+      gst_amount = ?, 
+      final_amount = ?
+    WHERE id = ?
+  `;
+
+  const vendorId = parseInt(data.vendor_id);
+  if (isNaN(vendorId)) throw new Error("vendor_id must be a valid integer");
+
+  const values = [
+    data.po_no || "",
+    vendorId,
+    data.date || null,
+    data.bill_time || null,
+    data.address || "",
+    data.mobile_no || "",
+    data.gst_no || "",
+    data.place_of_supply || "",
+    data.terms_condition || "",
+    data.total_amount || 0,
+    data.gst_amount || 0,
+    data.final_amount || 0,
+    id,
+  ];
+
+  const [result] = await db.query(sql, values);
+  return result;
+}
+
 };
 
 module.exports = PurchaseOrderItem;

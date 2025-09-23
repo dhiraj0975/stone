@@ -13,5 +13,10 @@ PurchaseOrderRouter.get("/:id", purchaseOrderController.getById);
 
 // ✅ Delete Purchase Order
 PurchaseOrderRouter.delete("/:id", purchaseOrderController.delete);
+// ✅ Update Purchase Order
+PurchaseOrderRouter.put("/:id", purchaseOrderController.update); //
+
+PurchaseOrderRouter.get("/:id/invoice", purchaseOrderController.getInvoice); // ✅ NEW
+
 
 module.exports = PurchaseOrderRouter;

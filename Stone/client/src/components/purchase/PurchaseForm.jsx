@@ -136,6 +136,7 @@ const PurchaseForm = () => {
     [rows]
   );
 
+// -------------------- On Submit --------------------
 const onSubmit = async (e) => {
   e.preventDefault();
 
@@ -154,25 +155,29 @@ const onSubmit = async (e) => {
   }));
 
   // 3️⃣ Prepare payload for purchases table
-  const payload = {
-    vendor_id: header.vendor_id,
-    po_id: poId || null,         // optional link PO
-    bill_no: header.po_no,
-    bill_date: header.date,       // must be YYYY-MM-DD
-    total_amount: totals.final,   // grand total
-    items,                        // array of purchase items
-  };
+// 3️⃣ Prepare payload for purchases table
+const payload = {
+  vendor_id: header.vendor_id,
+  po_id: poId || null,        // optional link PO
+  bill_no: header.po_no,
+  // ✅ Convert to YYYY-MM-DD
+  bill_date: header.date ? new Date(header.date).toISOString().split("T")[0] : null,
+  // total_amount: totals.final, 
+  items,
+};
+
 
   try {
-    const res = await PurchaseAPI.create(payload); // make sure PurchaseAPI imported correctly
+    const res = await PurchaseAPI.create(payload);
     console.log("Purchase saved:", res.data);
     alert("Purchase saved successfully!");
-    // optionally redirect or reset form
+    // redirect ya reset karna ho toh yaha karo
   } catch (err) {
     console.error("Save error:", err.response?.data || err);
     alert("Error saving purchase");
   }
 };
+
 
 
 
@@ -436,15 +441,18 @@ const onSubmit = async (e) => {
         <button type="button" onClick={addRow} className="px-4 py-2 bg-blue-600 text-white rounded">
           Add Item
         </button>
-        <button
-          type="submit"
-          disabled={loading || productsLoading || !isFormValid}
-          className={`px-6 py-2 rounded text-white bg-green-700 transition-opacity duration-200 ${
-            loading || productsLoading || !isFormValid ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
-          }`}
-        >
-          {loading ? "Saving..." : poId ? "Update PO" : "Save PO"}
-        </button>
+       <button
+  type="submit"
+  disabled={loading || productsLoading || !isFormValid}
+  className={`px-6 py-2 rounded text-white bg-green-700 transition-opacity duration-200 ${
+    loading || productsLoading || !isFormValid
+      ? "opacity-50 cursor-not-allowed"
+      : "opacity-100 cursor-pointer"
+  }`}
+>
+  {loading ? "Saving..." : poId ? "Save Items" : "Save Purchase"}
+</button>
+
       </div>
     </form>
   );
