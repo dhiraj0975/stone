@@ -14,26 +14,75 @@ const getProductById = async (id) => {
 
 // Create product
 const createProduct = async (data) => {
-  const { product_name, category_id, mrp, purchase_rate, sales_rate, qty, min_qty, remark, weight_per_packet, status } = data;
+  const {
+    product_name,
+    category_id,
+    mrp,
+    purchase_rate,
+    sales_rate,
+    qty,
+    min_qty,
+    remark,
+    weight_per_packet,
+    status,
+    hsn_code, // 👈 add this
+  } = data;
 
   const [result] = await db.query(
     `INSERT INTO products 
-    (product_name, category_id, mrp, purchase_rate, sales_rate, qty, min_qty, remark, weight_per_packet, status) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [product_name, category_id, mrp, purchase_rate, sales_rate, qty, min_qty, remark, weight_per_packet, status || "Active"]
+    (product_name, hsn_code, category_id, mrp, purchase_rate, sales_rate, qty, min_qty, remark, weight_per_packet, status) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      product_name,
+      hsn_code,
+      category_id,
+      mrp,
+      purchase_rate,
+      sales_rate,
+      qty,
+      min_qty,
+      remark,
+      weight_per_packet,
+      status || "Active",
+    ]
   );
   return result;
 };
 
 // Update product
 const updateProduct = async (id, data) => {
-  const { product_name, category_id, mrp, purchase_rate, sales_rate, qty, min_qty, remark, weight_per_packet, status } = data;
+  const {
+    product_name,
+    category_id,
+    mrp,
+    purchase_rate,
+    sales_rate,
+    qty,
+    min_qty,
+    remark,
+    weight_per_packet,
+    status,
+    hsn_code, // 👈 add this
+  } = data;
 
   const [result] = await db.query(
     `UPDATE products 
-     SET product_name=?, category_id=?, mrp=?, purchase_rate=?, sales_rate=?, qty=?, min_qty=?, remark=?, weight_per_packet=?, status=? 
+     SET product_name=?, hsn_code=?, category_id=?, mrp=?, purchase_rate=?, sales_rate=?, qty=?, min_qty=?, remark=?, weight_per_packet=?, status=? 
      WHERE id=?`,
-    [product_name, category_id, mrp, purchase_rate, sales_rate, qty, min_qty, remark, weight_per_packet, status, id]
+    [
+      product_name,
+      hsn_code,
+      category_id,
+      mrp,
+      purchase_rate,
+      sales_rate,
+      qty,
+      min_qty,
+      remark,
+      weight_per_packet,
+      status,
+      id,
+    ]
   );
   return result;
 };
@@ -49,5 +98,5 @@ module.exports = {
   getProductById,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
 };

@@ -21,24 +21,28 @@ const PurchaseForm = () => {
     dispatch(getProducts());
   }, [dispatch]);
 
-  const [header, setHeader] = useState({
-    po_no: "",
-    date: "",
-    bill_time: "",
-    bill_time_am_pm: "PM",
-    vendor_id: "",
-    address: "",
-    mobile_no: "",
-    gst_no: "",
-    gst_type: "ADD",
-    place_of_supply: "",
-    terms_condition: "",
-    edit_bill: "",
-  });
+// Initial header state
+const [header, setHeader] = useState({
+  po_no: "",
+  date: "",
+  bill_time: "00:00",      // default time
+  bill_time_am_pm: "PM",   // default AM/PM
+  vendor_id: "",
+  address: "",
+  mobile_no: "",
+  gst_no: "",
+  gst_type: "ADD",
+  place_of_supply: "",
+  terms_condition: "",
+  edit_bill: "",
+});
 
-  const [rows, setRows] = useState([
-    { product_id: "", item_name: "", hsn_code: "", qty: 1, rate: "", d1_percent: 0, gst_percent: 0 },
-  ]);
+
+// Initial row state
+const [rows, setRows] = useState([
+  { product_id: "", item_name: "", hsn_code: "", qty: 1, rate: 0, d1_percent: 0, gst_percent: 0 },
+]);
+
 
   // Prefill when editing by poId
   useEffect(() => {
@@ -140,43 +144,66 @@ const PurchaseForm = () => {
 const onSubmit = async (e) => {
   e.preventDefault();
 
-  // 1️⃣ Bill date check
+  // 1️⃣ Basic validation
   if (!header.date) {
     alert("Bill date is required!");
     return;
   }
+  if (!header.vendor_id) {
+    alert("Select a supplier!");
+    return;
+  }
+  if (!header.po_no.trim()) {
+    alert("PO No is required!");
+    return;
+  }
 
-  // 2️⃣ Prepare items for purchase_items table
+  // 2️⃣ Validate rows/items
   const items = rows.map((r) => ({
     product_id: r.product_id,
     qty: Number(r.qty),
     rate: Number(r.rate),
-    unit: "PCS", // ya product unit agar hai
+    unit: "PCS",
   }));
 
-  // 3️⃣ Prepare payload for purchases table
-// 3️⃣ Prepare payload for purchases table
-const payload = {
-  vendor_id: header.vendor_id,
-  po_id: poId || null,        // optional link PO
-  bill_no: header.po_no,
-  // ✅ Convert to YYYY-MM-DD
-  bill_date: header.date ? new Date(header.date).toISOString().split("T")[0] : null,
-  // total_amount: totals.final, 
-  items,
-};
+  if (items.some(i => !i.product_id || i.qty <= 0 || i.rate <= 0)) {
+    alert("All items must have a product selected and qty/rate > 0");
+    return;
+  }
 
+  // 3️⃣ Convert 12h time to 24h format
+  let billTime24 = "00:00:00";
+  if (header.bill_time) {
+    let [hh, mm] = header.bill_time.split(":").map(Number);
+    if (header.bill_time_am_pm === "PM" && hh < 12) hh += 12;
+    if (header.bill_time_am_pm === "AM" && hh === 12) hh = 0;
+    billTime24 = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00`;
+  }
 
+  // 4️⃣ Prepare payload
+  const payload = {
+    vendor_id: header.vendor_id,
+    po_id: poId || undefined, // undefined for new, backend handles it
+    bill_no: header.po_no,
+    bill_date: header.date ? new Date(header.date).toISOString().split("T")[0] : null,
+    bill_time: billTime24,
+    items,
+  };
+
+  console.log("Payload:", payload); // debug
+
+  // 5️⃣ Send to backend
   try {
     const res = await PurchaseAPI.create(payload);
     console.log("Purchase saved:", res.data);
     alert("Purchase saved successfully!");
-    // redirect ya reset karna ho toh yaha karo
+    // Reset form / redirect if needed
   } catch (err) {
     console.error("Save error:", err.response?.data || err);
     alert("Error saving purchase");
   }
 };
+
 
 
 
@@ -212,22 +239,22 @@ const payload = {
         <div className="flex flex-col">
           <label className="text-xs">BILL TIME</label>
           <div className="flex gap-1">
-            <input
-              type="time"
-              className="border rounded p-1 w-full"
-              name="bill_time"
-              value={header.bill_time}
-              onChange={onHeader}
-            />
-            <select
-              name="bill_time_am_pm"
-              className="border rounded p-1"
-              value={header.bill_time_am_pm}
-              onChange={onHeader}
-            >
-              <option>AM</option>
-              <option>PM</option>
-            </select>
+           <input
+  type="time"
+  name="bill_time"
+  value={header.bill_time || "00:00"} // fallback
+  onChange={onHeader}
+/>
+
+<select
+  name="bill_time_am_pm"
+  value={header.bill_time_am_pm || "PM"} // fallback
+  onChange={onHeader}
+>
+  <option>AM</option>
+  <option>PM</option>
+</select>
+
           </div>
         </div>
 

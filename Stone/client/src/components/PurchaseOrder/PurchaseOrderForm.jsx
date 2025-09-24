@@ -2,75 +2,141 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getVendors } from "../../redux/vender/vendorThunks";
 import { getProducts } from "../../redux/product/productThunks";
-import { createPurchaseOrder } from "../../redux/purchaseOrders/purchaseOrderSlice";
+import {fetchPurchaseOrders, createPurchaseOrder, updatePurchaseOrder } from "../../redux/purchaseOrders/purchaseOrderSlice";
 
 const fx = (n) => (isNaN(n) ? "0.000" : Number(n).toFixed(3));
 
-const PurchaseOrderForm = () => {
+const PurchaseOrderForm = ({ purchaseOrder, onSubmitted }) => {
   const dispatch = useDispatch();
   const { loading } = useSelector((s) => s.purchaseOrders);
   const { vendors = [] } = useSelector((s) => s.vendor);
   const { list: products = [], loading: productsLoading } = useSelector((s) => s.product);
 
+  const isEditMode = Boolean(purchaseOrder);
+
+  const [header, setHeader] = useState({});
+  const [rows, setRows] = useState([]);
+
+  // initial fetch
   useEffect(() => {
+    dispatch(fetchPurchaseOrders());
     dispatch(getVendors());
     dispatch(getProducts());
   }, [dispatch]);
 
-  const [header, setHeader] = useState({
-    po_no: "",
-    date: "",
-    bill_time: "",
-    bill_time_am_pm: "PM",
-    vendor_id: "",
-    address: "",
-    mobile_no: "",
-    gst_no: "",
-    gst_type: "ADD",
-    place_of_supply: "",
-    terms_condition: "",
-    edit_bill: "",
-  });
+  // sync props -> state
+  useEffect(() => {
+    const initialHeader = {
+      po_no: "",
+      date: "",
+      bill_time: "",
+      bill_time_am_pm: "PM",
+      vendor_id: "",
+      address: "",
+      mobile_no: "",
+      gst_no: "",
+      gst_type: "ADD",
+      place_of_supply: "",
+      terms_condition: "",
+      edit_bill: "",
+    };
 
-  const [rows, setRows] = useState([
-    { product_id: "", item_name: "", hsn_code: "", qty: 1, rate: "", d1_percent: 0 + "%", gst_percent: 0 },
-  ]);
+    const initialRows = [
+      { product_id: "", item_name: "", hsn_code: "", qty: 1, rate: 0, d1_percent: 0, gst_percent: 0 },
+    ];
 
-  const onHeader = (e) => setHeader((p) => ({ ...p, [e.target.name]: e.target.value }));
+    if (isEditMode && purchaseOrder) {
+      const normalizedDate = purchaseOrder.date
+        ? new Date(purchaseOrder.date).toISOString().split("T")[0]
+        : "";
+      setHeader({
+        ...initialHeader,
+        ...purchaseOrder,
+        date: normalizedDate,
+        bill_time_am_pm: "PM",
+      });
+      setRows(
+        purchaseOrder.items && purchaseOrder.items.length > 0
+          ? purchaseOrder.items.map((r) => ({
+              ...r,
+              qty: Number(r.qty || 0),
+              rate: Number(r.rate || 0),
+              d1_percent: Number(r.d1_percent ?? r.discount_rate ?? 0),
+              gst_percent: Number(r.gst_percent || 0),
+              product_id: String(r.product_id ?? ""),
+            }))
+          : initialRows
+      );
+    } else {
+      setHeader(initialHeader);
+      setRows(initialRows);
+    }
+  }, [purchaseOrder, isEditMode]);
 
-// ✅ Safe Row Update Function
+const onHeader = (e) => {
+  let value = e.target.value;
+
+  if (e.target.name === "vendor_id") {
+    value = parseInt(value, 10) || 0;
+
+    // vendor list me se select kiya hua vendor nikal
+    const selectedVendor = vendors.find(
+      (v) => String(v.id ?? v._id) === String(value)
+    );
+
+    if (selectedVendor) {
+      // vendor ke details auto fill
+      setHeader((p) => ({
+        ...p,
+        vendor_id: value,
+        address: selectedVendor.address || "",
+        mobile_no: selectedVendor.mobile_no || "",
+        gst_no: selectedVendor.gst_no || "",
+      }));
+      return; // niche wala code skip ho jaye
+    }
+  }
+
+  setHeader((p) => ({ ...p, [e.target.name]: value }));
+};
+
+
 const onRow = (i, field, value) => {
   setRows((prev) => {
     const next = [...prev];
-
-    // Sirf ye fields number me convert honge
-    const numericFields = ["qty", "rate", "d1_percent", "gst_percent"];
-
+    const numericFields = ["qty", "rate", "d1_percent", "gst_percent", "product_id"];
     next[i] = {
       ...next[i],
-      [field]: numericFields.includes(field) ? Number(value || 0) : value
+      [field]: numericFields.includes(field) ? Number(value || 0) : value,
     };
-
+    if (field === "product_id") {
+      const product = products.find((p) => String(p.id ?? p._id) === String(value));
+      next[i].item_name = product ? product.product_name || "" : "";
+    }
     return next;
   });
 };
 
 
   const addRow = () =>
-    setRows((p) => [...p, { product_id: "", item_name: "", hsn_code: "", qty: 1, rate: 0, d1_percent: 0, gst_percent: 0 }]);
+    setRows((p) => [
+      ...p,
+      { product_id: "", item_name: "", hsn_code: "", qty: 1, rate: 0, d1_percent: 0, gst_percent: 0 },
+    ]);
   const removeRow = (i) => setRows((p) => p.filter((_, idx) => idx !== i));
 
-  // Calculations as requested
+  // line calc: discount first, then GST on taxable
   const calc = (r) => {
-    const base = (r.qty || 0) * (r.rate || 0);
-    const perUnitDisc = ((r.rate || 0) * (r.d1_percent || 0)) / 100;   // D2
-    const totalDisc = (r.qty || 0) * perUnitDisc;                      // D3 = Disc
-    const taxable = Math.max(0, base - totalDisc);
-    const gstAmt = (taxable * (r.gst_percent || 0)) / 100;
+    const base = (Number(r.qty) || 0) * (Number(r.rate) || 0);
+    const perUnitDisc = ((Number(r.rate) || 0) * (Number(r.d1_percent) || 0)) / 100;
+    const totalDisc = (Number(r.qty) || 0) * perUnitDisc;
+    const taxable = Math.max(base - totalDisc, 0);
+    const gstAmt = (taxable * (Number(r.gst_percent) || 0)) / 100;
     const final = taxable + gstAmt;
     return { base, perUnitDisc, totalDisc, taxable, gstAmt, final };
   };
 
+  // totals
   const totals = useMemo(
     () =>
       rows.reduce(
@@ -88,19 +154,62 @@ const onRow = (i, field, value) => {
     [rows]
   );
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+const isFormValid = useMemo(() => {
+  // agar header ya rows empty ho → form invalid
+  if (!header || !rows || rows.length === 0) return false;
+
+  // ✅ Header validation
+  const headerValid =
+    header.po_no &&                     // PO No. must exist
+    String(header.po_no).trim() !== "" && // not empty string
+    header.vendor_id &&                 // vendor selected
+    Number(header.vendor_id) > 0;       // valid number
+
+  // ✅ Rows validation
+  const rowsValid = rows.every((r) => {
+    return (
+      r.product_id &&                   // product selected
+      Number(r.product_id) > 0 &&       // valid number
+      Number(r.qty) > 0 &&              // qty > 0
+      Number(r.rate) > 0                // rate > 0
+    );
+  });
+
+  return Boolean(headerValid && rowsValid); // header + all rows valid
+}, [header, rows]);
+
+
+  // submit
+const onSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    // 🔹 Date + Time merge karna
     let [h = "00", m = "00"] = String(header.bill_time || "00:00").split(":");
-h = Number(h);
-if (header.bill_time_am_pm === "PM" && h < 12) h += 12;
-if (header.bill_time_am_pm === "AM" && h === 12) h = 0;
-const bill_time = `${header.date || ""} ${String(h).padStart(2,'0')}:${m}:00`;
+    let hour = Number(h);
+    let minute = Number(m);
 
+    if (isNaN(hour)) hour = 0;
+    if (isNaN(minute)) minute = 0;
 
+    if (header.bill_time_am_pm === "PM" && hour < 12) hour += 12;
+    if (header.bill_time_am_pm === "AM" && hour === 12) hour = 0;
+
+    const bill_time = header.date
+      ? `${header.date} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`
+      : null;
+
+    // 🔹 Items array prepare karna
     const items = rows.map((r) => {
       const c = calc(r);
+      if (!r.product_id || Number(r.product_id) <= 0) {
+        throw new Error("Product ID is required for all items");
+      }
       return {
         ...r,
+        product_id: Number(r.product_id),
+        qty: Number(r.qty),
+        rate: Number(r.rate),
         amount: c.base,
         discount_rate: r.d1_percent,
         discount_per_qty: c.perUnitDisc,
@@ -111,121 +220,136 @@ const bill_time = `${header.date || ""} ${String(h).padStart(2,'0')}:${m}:00`;
       };
     });
 
-    await dispatch(
-      createPurchaseOrder({
-        ...header,
-        bill_time,
-        items,
-        summary: {
-          total_amount: totals.base,
-          total_discount: totals.disc,
-          total_taxable: totals.taxable,
-          total_gst: totals.gst,
-          grand_total: totals.final,
-        },
-      })
-    );
-  };
+    // 🔹 Summary calculation
+    const summary = {
+      total_amount: totals.base,
+      total_discount: totals.disc,
+      total_taxable: totals.taxable,
+      total_gst: totals.gst,
+      grand_total: totals.final,
+    };
 
-// ✅ Form valid check
-const isFormValid =
-  header.po_no.trim() !== "" &&
-  header.date.trim() !== "" &&
-  header.vendor_id !== "" &&
-  rows.length > 0 &&
-  rows.every(
-    (r) =>
-      String(r.product_id).trim() !== "" &&   // ✅ fix
-      r.item_name.trim() !== "" &&
-      Number(r.qty) > 0 &&
-      Number(r.rate) > 0
-  );
+    // 🔹 Payload ready
+    const payload = { ...header, bill_time, items, summary };
 
+    // 🔹 Dispatch create/update action
+    const action = isEditMode
+      ? updatePurchaseOrder({ id: purchaseOrder._id || purchaseOrder.id, data: payload })
+      : createPurchaseOrder(payload);
+
+    const result = await dispatch(action);
+
+    // 🔹 Success callback
+    if (!result.error && onSubmitted) onSubmitted();
+  } catch (err) {
+    console.error("Error submitting purchase order:", err);
+    alert("Failed to submit purchase order. Check console for details.");
+  }
+};
 
 
   return (
     <form onSubmit={onSubmit} className="p-3">
-      {/* Header strip (short) */}
-     {/* Header strip (short) */}
-<div className="grid grid-cols-6 gap-3 border p-3 rounded">
-  <div className="flex flex-col">
-    <label className="text-xs">PO No.</label>
-    <input className="border rounded p-1" name="po_no" value={header.po_no} onChange={onHeader} />
-  </div>
+      {/* Header strip */}
+      <div className="grid grid-cols-6 gap-3 border p-3 rounded">
+        <div className="flex flex-col">
+          <label className="text-xs">PO No.</label>
+          <input className="border rounded p-1" name="po_no" value={header.po_no} onChange={onHeader} />
+        </div>
 
-  <div className="flex flex-col">
-    <label className="text-xs">DATE</label>
-    <input type="date" className="border rounded p-1" name="date" value={header.date} onChange={onHeader} />
-  </div>
+        <div className="flex flex-col">
+          <label className="text-xs">DATE</label>
+          <input type="date" className="border rounded p-1" name="date" value={header.date} onChange={onHeader} />
+        </div>
 
-  <div className="flex flex-col">
-    <label className="text-xs">BILL TIME</label>
-    <div className="flex gap-1">
-      <input type="time" className="border rounded p-1 w-full" name="bill_time" value={header.bill_time} onChange={onHeader} />
-      <select name="bill_time_am_pm" className="border rounded p-1" value={header.bill_time_am_pm} onChange={onHeader}>
-        <option>AM</option>
-        <option>PM</option>
-      </select>
-    </div>
-  </div>
+        <div className="flex flex-col">
+          <label className="text-xs">BILL TIME</label>
+          <div className="flex gap-1">
+            <input
+              type="time"
+              className="border rounded p-1 w-full"
+              name="bill_time"
+              value={header.bill_time}
+              onChange={onHeader}
+            />
+            <select
+              name="bill_time_am_pm"
+              className="border rounded p-1"
+              value={header.bill_time_am_pm}
+              onChange={onHeader}
+            >
+              <option>AM</option>
+              <option>PM</option>
+            </select>
+          </div>
+        </div>
 
-  <div className="flex flex-col">
-    <label className="text-xs">SUPPLIER</label>
-    <select className="border rounded p-1" name="vendor_id" value={header.vendor_id} onChange={onHeader}>
-      <option value="">Select</option>
-      {vendors.map((v) => (
-        <option key={v.id} value={v.id}>{v.name}</option>
-      ))}
-    </select>
-  </div>
+        <div className="flex flex-col">
+          <label className="text-xs">SUPPLIER</label>
+          <select className="border rounded p-1" name="vendor_id" value={header.vendor_id} onChange={onHeader}>
+            <option value="">Select</option>
+            {vendors.map((v) => (
+              <option key={v.id ?? v._id} value={String(v.id ?? v._id)}>
+                {v.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-  <div className="flex flex-col">
-    <label className="text-xs">ADDRESS</label>
-    <input className="border rounded p-1" name="address" value={header.address} onChange={onHeader} />
-  </div>
+        <div className="flex flex-col">
+          <label className="text-xs">ADDRESS</label>
+          <input className="border rounded p-1" name="address" value={header.address} onChange={onHeader} />
+        </div>
 
-  <div className="flex flex-col">
-    <label className="text-xs">MOBILE NO</label>
-    <input className="border rounded p-1" name="mobile_no" value={header.mobile_no} onChange={onHeader} />
-  </div>
+        <div className="flex flex-col">
+          <label className="text-xs">MOBILE NO</label>
+          <input className="border rounded p-1" name="mobile_no" value={header.mobile_no} onChange={onHeader} />
+        </div>
 
-  {/* NEW: GST No */}
-  <div className="flex flex-col">
-    <label className="text-xs">GST No</label>
-    <input className="border rounded p-1" name="gst_no" value={header.gst_no} onChange={onHeader} />
-  </div>
+        <div className="flex flex-col">
+          <label className="text-xs">GST No</label>
+          <input className="border rounded p-1" name="gst_no" value={header.gst_no} onChange={onHeader} />
+        </div>
 
-  {/* NEW: Place of Supply */}
-  <div className="flex flex-col">
-    <label className="text-xs">Place of Supply</label>
-    <input className="border rounded p-1" name="place_of_supply" value={header.place_of_supply} onChange={onHeader} />
-  </div>
+        <div className="flex flex-col">
+          <label className="text-xs">Place of Supply</label>
+          <input
+            className="border rounded p-1"
+            name="place_of_supply"
+            value={header.place_of_supply}
+            onChange={onHeader}
+          />
+        </div>
 
-  {/* NEW: Terms & Conditions */}
-  <div className="flex flex-col col-span-2">
-    <label className="text-xs">Terms</label>
-    <input className="border rounded p-1" name="terms_condition" value={header.terms_condition} onChange={onHeader} placeholder="e.g., 30 days payment term" />
-  </div>
-</div>
-
+        <div className="flex flex-col col-span-2">
+          <label className="text-xs">Terms</label>
+          <input
+            className="border rounded p-1"
+            name="terms_condition"
+            value={header.terms_condition}
+            onChange={onHeader}
+            placeholder="e.g., 30 days payment term"
+          />
+        </div>
+      </div>
 
       {/* Final Amount banner */}
       <div className="bg-black text-yellow-300 text-center text-2xl font-semibold py-2 mt-3 mb-2 rounded">
         FINAL AMOUNT: {fx(totals.final)}
       </div>
 
-      {/* Table */}
+      {/* Items table */}
       <div className="overflow-auto">
         <table className="w-full text-sm border">
           <thead className="bg-green-700 text-white">
             <tr>
               {["SI", "Item Name", "HSNCode", "Qty", "Rate", "Amount", "Disc %", "per qty Disc", "Disc", "GST%", "GST Amt", "FinalAmt", "Actions"].map(
-  (h, idx) => (
-    <th key={`${h}-${idx}`} className="border px-2 py-1 text-left">
-      {h}
-    </th>
-  )
-)}
+                (h, idx) => (
+                  <th key={`${h}-${idx}`} className="border px-2 py-1 text-left">
+                    {h}
+                  </th>
+                )
+              )}
             </tr>
           </thead>
           <tbody>
@@ -238,47 +362,53 @@ const isFormValid =
                   <td className="border px-2 py-1">
                     <div className="flex gap-1">
                       <select
-  className="border rounded p-1 w-44"
-  value={r.product_id}
-  onChange={(e) => {
-    const pid = e.target.value; // string
-    const p = products.find((x) => String(x.id) === String(pid)); // ✅ type safe compare
-    onRow(i, "product_id", pid); // product_id ko string hi rakhte hain
-    if (p) onRow(i, "item_name", p.product_name || "");
-  }}
->
-  <option value="">Select</option>
-  {products.map((p) => (
-    <option key={p.id} value={String(p.id)}> {/* ✅ string value */}
-      {p.product_name}
-    </option>
-  ))}
-</select>
-
-                      {/* <input
-                        className="border rounded p-1 w-24"
-                        placeholder="Item Name"
-                        value={r.item_name}
-                        onChange={(e) => onRow(i, "item_name", e.target.value)}
-                      /> */}
+                        className="border rounded p-1 w-44"
+                        value={r.product_id}
+                        onChange={(e) => {
+                          const pid = e.target.value;
+                          const p = products.find((x) => String(x.id ?? x._id) === String(pid));
+                          onRow(i, "product_id", pid);
+                          if (p) onRow(i, "item_name", p.product_name || "");
+                        }}
+                      >
+                        <option value="">Select</option>
+                        {products.map((p) => (
+                          <option key={p.id ?? p._id} value={String(p.id ?? p._id)}>
+                            {p.product_name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </td>
 
                   <td className="border px-2 py-1">
-                    <input className="border rounded p-1 w-24" value={r.hsn_code} onChange={(e) => onRow(i, "hsn_code", e.target.value)} />
+                    <input
+                      className="border rounded p-1 w-24"
+                      value={r.hsn_code}
+                      onChange={(e) => onRow(i, "hsn_code", e.target.value)}
+                    />
                   </td>
 
                   <td className="border px-2 py-1">
-                    <input type="number" className="border rounded p-1 w-20" value={r.qty} onChange={(e) => onRow(i, "qty", e.target.value)} />
+                    <input
+                      type="number"
+                      className="border rounded p-1 w-20"
+                      value={r.qty}
+                      onChange={(e) => onRow(i, "qty", e.target.value)}
+                    />
                   </td>
 
                   <td className="border px-2 py-1">
-                    <input type="number" className="border rounded p-1 w-20" value={r.rate} onChange={(e) => onRow(i, "rate", e.target.value)} />
+                    <input
+                      type="number"
+                      className="border rounded p-1 w-20"
+                      value={r.rate}
+                      onChange={(e) => onRow(i, "rate", e.target.value)}
+                    />
                   </td>
 
                   <td className="border px-2 py-1">{fx(c.base)}</td>
 
-                  {/* D1: editable percent */}
                   <td className="border px-2 py-1">
                     <input
                       type="number"
@@ -288,18 +418,13 @@ const isFormValid =
                     />
                   </td>
 
-                  {/* D2: per-unit amount (read-only) */}
                   <td className="border px-2 py-1">
                     <input type="number" className="border rounded p-1 w-20 bg-gray-100" value={fx(c.perUnitDisc)} readOnly />
                   </td>
 
-                  {/* D3: total discount (read-only) */}
                   <td className="border px-2 py-1">
                     <input type="number" className="border rounded p-1 w-24 bg-gray-100" value={fx(c.totalDisc)} readOnly />
                   </td>
-
-                  {/* Disc column: show total discount as in requirement */}
-                  <td className="border px-2 py-1">{fx(c.totalDisc)}</td>
 
                   <td className="border px-2 py-1">
                     <input
@@ -331,7 +456,6 @@ const isFormValid =
               <td className="border px-2 py-1">{fx(totals.base)}</td>
               <td className="border px-2 py-1">—</td>
               <td className="border px-2 py-1">—</td>
-              <td className="border px-2 py-1">—</td>
               <td className="border px-2 py-1">{fx(totals.disc)}</td>
               <td className="border px-2 py-1">—</td>
               <td className="border px-2 py-1">{fx(totals.gst)}</td>
@@ -346,17 +470,15 @@ const isFormValid =
         <button type="button" onClick={addRow} className="px-4 py-2 bg-blue-600 text-white rounded">
           Add Item
         </button>
-<button
-  type="submit"
-  disabled={loading || productsLoading || !isFormValid}
-  className={`px-6 py-2 rounded text-white bg-green-700 transition-opacity duration-200
-    ${loading || productsLoading || !isFormValid ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"}`}
->
-  {loading ? "Saving..." : "Save PO"}
-</button>
-
-
-
+        <button
+          type="submit"
+          disabled={loading || productsLoading || !isFormValid}
+          className={`px-6 py-2 rounded text-white bg-green-700 transition-opacity duration-200 ${
+            loading || productsLoading || !isFormValid ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
+          }`}
+        >
+          {loading ? (isEditMode ? "Updating..." : "Saving...") : isEditMode ? "Update PO" : "Save PO"}
+        </button>
       </div>
     </form>
   );

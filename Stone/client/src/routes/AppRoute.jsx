@@ -3,15 +3,12 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-
 // Pages & Components
 import Login from "../pages/auth/Login";
 import Dashboard from "../components/Dashboard/Dashboard";
 import VendorPage from "../components/vendors/VendorPage";
-import PrivateRoute from '../components/PrivateRoute'
 import Spinner from "../components/Spinner";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
-//import PurchaseOrder from "../components/Sidebar/PurchaseOrder";
 import Product from "../components/Sidebar/Product";
 import ProductionEntryForm from "../components/Sidebar/ProductionEntryForm";
 import Categories from "../components/Categories/Categories";
@@ -21,32 +18,49 @@ import PurchaseForm from "../components/purchase/PurchaseForm";
 import Invoice from "../components/PurchaseOrder/Invoice";
 import PurchaseOrderForm from "../components/PurchaseOrder/PurchaseOrderForm";
 
+// Sales
+import SalesList from "../components/Sales/SalesList";
+import SalesPage from "../components/Sales/SalesPage";
+import SalesForm from "../components/Sales/SalesForm";
+import SalesInvoice from "../components/Sales/SalesInvoice";
+
 const AppRoute = () => {
   const { loading } = useSelector((state) => state.alerts);
+
+  // Safe destructuring with fallback
+  const products = useSelector((state) => state.product?.list || []);
+  const customers = useSelector((state) => state.customer?.list || []);
 
   return (
     <BrowserRouter>
       {loading && <Spinner />}
       <Routes>
         {/* 🔒 Protected routes (with sidebar layout) */}
-     
-          <Route element={<DashboardLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/vendor" element={<VendorPage />} />
-            <Route path="/category" element={<Categories />} />
-            <Route path="/bom" element={<h1>BOM</h1>} />
-            <Route path="/production" element={<ProductionEntryForm />} />
-            <Route path="/inventory" element={<h1>Inventory</h1>} />
-            <Route path="/invoicing" element={<h1>Invoicing</h1>} />
-            <Route path="/product" element={<Product />} />
-             <Route path="/purchases" element={<Purchases/>} />
-             <Route path="/purchase-orders" element={<PurchaseOrders/>} />
-              <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderForm />} />
-             <Route path="/purchases/create/:poId" element={<PurchaseForm />} />
-             <Route path="/invoice/:id" element={<Invoice/>} />   {/* ✅ new */}
+        <Route element={<DashboardLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/vendor" element={<VendorPage />} />
+          <Route path="/category" element={<Categories />} />
+          <Route path="/bom" element={<h1>BOM</h1>} />
+          <Route path="/production" element={<ProductionEntryForm />} />
+          <Route path="/inventory" element={<h1>Inventory</h1>} />
+          <Route path="/invoicing" element={<h1>Invoicing</h1>} />
+          <Route path="/product" element={<Product />} />
+          <Route path="/purchases" element={<Purchases />} />
+          <Route path="/purchase-orders" element={<PurchaseOrders />} />
+          <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderForm />} />
+          <Route path="/purchases/create/:poId" element={<PurchaseForm />} />
+          <Route path="/invoice/:id" element={<Invoice />} />
+
+          {/* Sales Routes */}
+          <Route path="/sales" element={<SalesPage />}>
+            <Route index element={<SalesList />} />
+            <Route path="create" element={<SalesForm products={products} customers={customers} />} />
+            <Route path="edit/:saleId" element={<SalesForm products={products} customers={customers} />} />
+            <Route path="invoice/:saleId" element={<SalesInvoice />} />
           </Route>
-        
-        {/* 🌐 Public routes (no layout) */}
+        </Route>
+
+        {/* 🌐 Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/unauthorized" element={<h1>Unauthorized Access</h1>} />
 

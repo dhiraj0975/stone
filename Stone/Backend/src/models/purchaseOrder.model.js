@@ -79,36 +79,67 @@ JOIN vendors v
     return rows;
   },
 
-  update: async (id, data) => {
+// Header only update
+updateHeader: async (id, data) => {
     const sql = `
       UPDATE purchase_orders SET
-      po_no = ?, vendor_id = ?, date = ?, bill_time = ?, address = ?, mobile_no = ?, 
-      gst_no = ?, place_of_supply = ?, terms_condition = ?, total_amount = ?, gst_amount = ?, final_amount = ?
+        po_no = ?, vendor_id = ?, date = ?, bill_time = ?,
+        address = ?, mobile_no = ?, gst_no = ?, place_of_supply = ?, 
+        terms_condition = ?, total_amount = ?, gst_amount = ?, final_amount = ?
       WHERE id = ?
     `;
-
-    const vendorId = parseInt(data.vendor_id);
-    if (isNaN(vendorId)) throw new Error("vendor_id must be a valid integer");
-
     const values = [
-      data.po_no || "",
-      vendorId,
-      data.date || null,
-      data.bill_time || null,
-      data.address || "",
-      data.mobile_no || "",
-      data.gst_no || "",
-      data.place_of_supply || "",
-      data.terms_condition || "",
-      data.total_amount || 0,
+      data.po_no,
+      data.vendor_id,
+      data.date,
+      data.bill_time,
+      data.address,
+      data.mobile_no,
+      data.gst_no,
+      data.place_of_supply,
+      data.terms_condition,
+      data.total_amount,
+      data.gst_amount,
+      data.final_amount,
+      id,
+    ];
+    const [result] = await db.query(sql, values);
+    return result;
+  },
+
+  // Update single PO item
+  updateItem: async (id, data) => {
+    if (!data.product_id) throw new Error("product_id is required for updating purchase_order_items");
+
+    const sql = `
+      UPDATE purchase_order_items SET
+        product_id = ?, hsn_code = ?, qty = ?, rate = ?, amount = ?,
+        discount_per_qty = ?, discount_rate = ?, discount_total = ?,
+        gst_percent = ?, gst_amount = ?, final_amount = ?
+      WHERE id = ?
+    `;
+    const values = [
+      data.product_id,
+      data.hsn_code || "",
+      data.qty || 0,
+      data.rate || 0,
+      data.amount || 0,
+      data.discount_per_qty || 0,
+      data.discount_rate || 0,
+      data.discount_total || 0,
+      data.gst_percent || 0,
       data.gst_amount || 0,
       data.final_amount || 0,
       id,
     ];
-
     const [result] = await db.query(sql, values);
     return result;
   },
+
+  // …other functions like create, delete
+
+
+
 
   delete: async (id) => {
     const [result] = await db.query(`DELETE FROM purchase_orders WHERE id = ?`, [id]);

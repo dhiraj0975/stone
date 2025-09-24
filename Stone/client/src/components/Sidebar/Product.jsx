@@ -36,7 +36,9 @@ const Product = () => {
       setEditId(prod.id);
       setForm({
         product_name: prod.product_name || "",
+
         category_id: prod.category_id || "",
+           hsn_code: prod.hsn_code || "",   // 👈 ye add karo
         mrp: prod.mrp || "",
         purchase_rate: prod.purchase_rate || "",
         sales_rate: prod.sales_rate || "",
@@ -49,7 +51,7 @@ const Product = () => {
     } else {
       setEditId(null);
       setForm({
-        product_name: "", category_id: "", mrp: "", purchase_rate: "",
+        product_name: "", category_id: "",  hsn_code: "",  mrp: "", purchase_rate: "",
         sales_rate: "", qty: "", min_qty: "", remark: "", weight_per_packet: "", status: "Active"
       });
     }
@@ -123,6 +125,15 @@ const Product = () => {
                 <option value="">Select Category</option>
                 {categories.map(cat => <option key={cat.id || cat._id} value={cat.id || cat._id}>{cat.name}</option>)}
               </select>
+              <input
+  type="text"
+  placeholder="HSN Code"
+  name="hsn_code"
+  value={form.hsn_code || ""}
+  onChange={handleChange}
+  className="border-gray-300 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+/>
+
               {["mrp","purchase_rate","sales_rate","qty","min_qty","weight_per_packet"].map(f => (
                 <input
                   key={f}
@@ -166,9 +177,10 @@ const Product = () => {
         <table className="min-w-full  bg-white divide-y divide-gray-200 rounded-xl">
           <thead className="bg-gradient-to-r from-indigo-100 to-purple-100">
             <tr>
-              {["Product Name","Category","MRP","Purchase Rate","Sales Rate","Qty","Min Qty","Remark","Weight/Packet","Status","Actions"].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-gray-600 font-medium">{h}</th>
-              ))}
+             {["Product Name","Category","HSN Code","MRP","Purchase Rate","Sales Rate","Qty","Min Qty","Remark","Weight/Packet","Status","Actions"].map(h => (
+  <th key={h} className="px-4 py-3 text-left text-gray-600 font-medium">{h}</th>
+))}
+
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -177,6 +189,7 @@ const Product = () => {
                 
                 <td className="px-4 py-2 font-medium">{prod.product_name}</td>
                 <td className="px-4 py-2">{getCategoryName(prod.category_id)}</td>
+                <td className="px-4 py-2">{prod.hsn_code}</td>
                 <td className="px-4 py-2">{prod.mrp}</td>
                 <td className="px-4 py-2">{prod.purchase_rate}</td>
                 <td className="px-4 py-2">{prod.sales_rate}</td>

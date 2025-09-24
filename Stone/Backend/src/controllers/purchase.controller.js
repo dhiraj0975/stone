@@ -25,7 +25,8 @@ const purchaseController = {
       res.status(201).json({
         message: "Purchase created successfully",
         purchase_id: purchaseId,
-      });
+        
+      }, purchaseId);
     } catch (err) {
       console.error("Purchase creation error:", err);
       res.status(500).json({ error: err.message });

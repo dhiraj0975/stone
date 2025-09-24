@@ -335,72 +335,23 @@ const purchaseOrderController = {
   // ✅ Update Purchase Order & its Items
 update: async (req, res) => {
   try {
-    const { id } = req.params; // purchase_order_id
+    const { id } = req.params;
     const { po_no, vendor_id, date, bill_time, address, mobile_no, gst_no, place_of_supply, terms_condition, items } = req.body;
-
-    // Update PO header
-    await PurchaseOrder.update(id, {
-      po_no,
-      vendor_id: Number(vendor_id),
-      date,
-      bill_time,
-      address,
-      mobile_no,
-      gst_no,
-      place_of_supply,
-      terms_condition,
-      total_amount: 0, // Will recalc after items
-      gst_amount: 0,
-      final_amount: 0,
-    });
 
     let totalAmount = 0;
     let totalGST = 0;
     let finalAmount = 0;
 
-    // Update / Insert items
+    // calculate totals first
     for (const item of items) {
       const { amount, discount_rate, discount_total, gst_amount, final_amount } = calculateItem(item);
       totalAmount += amount - discount_total;
       totalGST += gst_amount;
       finalAmount += final_amount;
-
-      if (item.id) {
-        // Update existing item
-        await PurchaseOrderItem.update(item.id, {
-          product_id: Number(item.product_id),
-          hsn_code: item.hsn_code,
-          qty: Number(item.qty),
-          rate: Number(item.rate),
-          amount,
-          discount_per_qty: Number(item.discount_per_qty || 0),
-          discount_rate,
-          discount_total,
-          gst_percent: Number(item.gst_percent || 0),
-          gst_amount,
-          final_amount,
-        });
-      } else {
-        // Create new item if id not exists
-        await PurchaseOrderItem.create({
-          purchase_order_id: id,
-          product_id: Number(item.product_id),
-          hsn_code: item.hsn_code,
-          qty: Number(item.qty),
-          rate: Number(item.rate),
-          amount,
-          discount_per_qty: Number(item.discount_per_qty || 0),
-          discount_rate,
-          discount_total,
-          gst_percent: Number(item.gst_percent || 0),
-          gst_amount,
-          final_amount,
-        });
-      }
     }
 
-    // Update PO totals after item recalculation
-    await PurchaseOrder.update(id, {
+    // update PO header
+    await PurchaseOrder.updateHeader(id, {
       po_no,
       vendor_id: Number(vendor_id),
       date,
@@ -415,12 +366,39 @@ update: async (req, res) => {
       final_amount: finalAmount,
     });
 
+    // update or create items
+    for (const item of items) {
+      const { amount, discount_rate, discount_total, gst_amount, final_amount } = calculateItem(item);
+
+      const itemData = {
+        product_id: Number(item.product_id),
+        hsn_code: item.hsn_code,
+        qty: Number(item.qty),
+        rate: Number(item.rate),
+        amount,
+        discount_per_qty: Number(item.discount_per_qty || 0),
+        discount_rate,
+        discount_total,
+        gst_percent: Number(item.gst_percent || 0),
+        gst_amount,
+        final_amount,
+      };
+
+      if (item.id) {
+        await PurchaseOrder.updateItem(item.id, itemData);
+      } else {
+        // create new item
+        await PurchaseOrderItem.create({ purchase_order_id: id, ...itemData });
+      }
+    }
+
     res.json({ message: "Purchase Order updated successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
 },
+
 
 };
 

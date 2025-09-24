@@ -25,6 +25,7 @@ const Sidebar = () => {
     { name: "Product", path: "/product", icon: <FiPackage size={20} /> },
     { name: "Purchases", path: "/purchases", icon: <FiShoppingBag size={20} /> },
     { name: "PO List", path: "/purchase-orders", icon: <FiFileText size={20} /> },
+    { name: "Sales", path: "/sales", icon: <FiShoppingBag size={20} /> },
     { name: "BOM", path: "/bom", icon: <FiLayers size={20} /> },
     { name: "Production Entry", path: "/production", icon: <FiPackage size={20} /> },
     { name: "Inventory", path: "/inventory", icon: <FiPieChart size={20} /> },
