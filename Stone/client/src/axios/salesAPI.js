@@ -7,6 +7,7 @@ const SalesAPI = {
   update: (id, data) => api.put(`/sales/${id}`, data),
   delete: (id) => api.delete(`/sales/${id}`),
   getInvoice: (id) => api.get(`/sales/${id}/invoice`),
+  getNewBillNo: () => api.get("/sales/new-bill"), // <-- added
 };
 
 export default SalesAPI;
