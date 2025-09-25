@@ -12,7 +12,7 @@ const Customer = () => {
       {/* Register Button */}
       <button
         onClick={() => setShowForm(!showForm)}
-        className="mb-4 px-4 py-2 bg-blue-600 text-white rounded"
+        className="mb-4 px-4 py-2 bg-blue-600 text-white active:scale-95 rounded"
       >
         {showForm ? "Close Registration Form" : "Register New Customer"}
       </button>

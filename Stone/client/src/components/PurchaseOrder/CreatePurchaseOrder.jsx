@@ -111,14 +111,14 @@ const CreatePurchaseOrder = () => {
               <label>Rate</label>
               <input type="number" name="rate" value={item.rate} onChange={(e) => handleItemChange(index, e)} className="w-full p-2 border rounded" />
             </div>
-            <button type="button" onClick={() => removeItem(index)} className="bg-red-500 text-white p-2 rounded">Remove</button>
+            <button type="button" onClick={() => removeItem(index)} className="bg-red-500 text-white p-2 rounded active:scale-95">Remove</button>
           </div>
         ))}
-        <button type="button" onClick={addItem} className="bg-blue-500 text-white p-2 rounded mb-4">Add Item</button>
+        <button type="button" onClick={addItem} className="bg-blue-500 text-white p-2 active:scale-95 rounded mb-4">Add Item</button>
 
         {/* Submit */}
         <div className="flex justify-end">
-          <button type="submit" className="bg-green-500 text-white p-2 rounded">
+          <button type="submit" className="bg-green-500 text-white p-2 rounded active:scale-95">
             {isEditMode ? 'Update PO' : 'Create PO'}
           </button>
         </div>

@@ -18,8 +18,8 @@ const Navbar = () => {
       <div className="flex items-center gap-5">
         {/* Notification */}
         <button className="relative">
-          <BellIcon className="w-6 h-6 text-gray-600 hover:text-blue-600" />
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded-full">
+          <BellIcon className="w-6 h-6 text-gray-600 hover:text-blue-600 active:scale-95" />
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded-full active:scale-95">
             3
           </span>
         </button>

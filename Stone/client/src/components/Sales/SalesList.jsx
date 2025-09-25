@@ -119,7 +119,7 @@ useEffect(() => {
 
                     <button
                       onClick={() => deleteSale(s.id)}
-                      className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                      className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition active:scale-95"
                     >
                       Delete
                     </button>

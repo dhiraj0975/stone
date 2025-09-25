@@ -56,7 +56,7 @@ export default function VendorList() {
                     {vendor.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium active:scale-95">
                   <button
                     onClick={() => handleDelete(vendor._id || vendor.id)}
                     className="text-red-600 hover:text-red-900"

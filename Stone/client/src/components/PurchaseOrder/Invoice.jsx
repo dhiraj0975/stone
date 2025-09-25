@@ -59,7 +59,7 @@ useEffect(() => {
         <h1 className="text-2xl font-bold">Invoice #{invoice.invoiceNo || "N/A"}</h1>
         <button
           onClick={() => window.print()}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 active:scale-95"
         >
           🖨️ Print
         </button>

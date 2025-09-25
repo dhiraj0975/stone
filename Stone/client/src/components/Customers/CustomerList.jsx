@@ -83,7 +83,7 @@ const CustomerList = () => {
                 <td className="border px-2 py-1 text-center">
   <button
     onClick={() => handleToggleStatus(c.id, c.status === "active" ? "inactive" : "active")}
-    className={`px-2 py-1 rounded text-white ${
+    className={`px-2 py-1 rounded text-white active:scale-95 ${
       c.status === "Active" ? "bg-green-600" : "bg-red-600"
     }`}
   >
@@ -95,7 +95,7 @@ const CustomerList = () => {
                   {/* Edit button */}
                   <button
                     onClick={() => navigate(`/customers/edit/${c.id}`)}
-                    className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
+                    className="px-2 py-1 bg-blue-500  text-white rounded text-xs active:scale-95"
                   >
                     Edit
                   </button>
@@ -103,7 +103,7 @@ const CustomerList = () => {
                   {/* Delete button */}
                   <button
                     onClick={() => handleDelete(c.id)}
-                    className="px-2 py-1 bg-red-500 text-white rounded text-xs"
+                    className="px-2 py-1 bg-red-500 text-white rounded text-xs active:scale-95"
                   >
                     Delete
                   </button>
@@ -111,7 +111,7 @@ const CustomerList = () => {
                   {/* Toggle status */}
                   <button
                     onClick={() => handleToggleStatus(c.id, c.status)}
-                    className="px-2 py-1 bg-gray-600 text-white rounded text-xs"
+                    className="px-2 py-1 bg-gray-600 text-white rounded text-xs active:scale-95"
                   >
                     {c.status === "Active" ? "Deactivate" : "Activate"}
                   </button>

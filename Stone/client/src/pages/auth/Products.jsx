@@ -172,7 +172,7 @@ export default function Products() {
 
         <button
           type="submit"
-          className="col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          className="col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 active:scale-95"
         >
           {editingId ? "Update Product" : "Add Product"}
         </button>
@@ -213,13 +213,13 @@ export default function Products() {
                 <td className="border px-4 py-2 space-x-2">
                   <button
                     onClick={() => handleEdit(p)}
-                    className="bg-yellow-500 text-white px-2 py-1 rounded"
+                    className="bg-yellow-500 text-white px-2 py-1 rounded active:scale-95"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(p.id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded"
+                    className="bg-red-500 text-white px-2 py-1 rounded active:scale-95"
                   >
                     Delete
                   </button>

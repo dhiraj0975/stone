@@ -94,7 +94,7 @@ const Product = () => {
       <div className="flex justify-end mb-6">
         <button
           onClick={() => openForm()}
-          className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-lg shadow-lg hover:scale-105 transition-transform"
+          className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-lg shadow-lg hover:scale-105 transition-transform active:scale-95"
         >
           <FiPlus size={18} /> Add Product
         </button>
@@ -164,8 +164,8 @@ const Product = () => {
                 className="border-gray-300 border rounded-lg px-4 py-2 col-span-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
               <div className="col-span-2 flex justify-end gap-3 mt-3">
-                <button type="button" onClick={() => setOpen(false)} className="px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Cancel</button>
-                <button type="submit" className="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition">{editId ? "Update" : "Save"}</button>
+                <button type="button" onClick={() => setOpen(false)} className="px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition active:scale-95">Cancel</button>
+                <button type="submit" className="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition active:scale-95 ">{editId ? "Update" : "Save"}</button>
               </div>
             </form>
           </div>
@@ -199,8 +199,8 @@ const Product = () => {
                 <td className="px-4 py-2">{prod.weight_per_packet}</td>
                 <td className="px-4 py-2">{prod.status}</td>
                 <td className="px-4 py-2 flex gap-3">
-                  <button onClick={() => openForm(prod)} className="text-indigo-600 hover:text-indigo-800"><FiEdit /></button>
-                  <button onClick={() => handleDelete(prod.id)} className="text-red-600 hover:text-red-800"><FiTrash2 /></button>
+                  <button onClick={() => openForm(prod)} className="text-indigo-600 hover:text-indigo-800 active:scale-95"><FiEdit /></button>
+                  <button onClick={() => handleDelete(prod.id)} className="text-red-600 hover:text-red-800 active:scale-95"><FiTrash2 /></button>
                 </td>
               </tr>
             )) : (

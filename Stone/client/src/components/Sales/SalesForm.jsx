@@ -376,8 +376,8 @@ const onSubmit = async (e) => {
       </div>
 
       <div className="flex gap-2 mt-3">
-        <button type="button" onClick={addRow} className="px-4 py-2 bg-blue-600 text-white rounded">Add Item</button>
-        <button type="submit" disabled={loading || !isFormValid} className={`px-6 py-2 rounded text-white bg-green-700 ${loading || !isFormValid ? "opacity-50 cursor-not-allowed" : ""}`}>
+        <button type="button" onClick={addRow} className="px-4 py-2 active:scale-95 bg-blue-600 text-white rounded">Add Item</button>
+        <button type="submit" disabled={loading || !isFormValid} className={`px-6 py-2 rounded active:scale-95 text-white bg-green-700 ${loading || !isFormValid ? "opacity-50 cursor-not-allowed" : ""}`}>
           {loading ? (isEditMode ? "Updating..." : "Saving...") : isEditMode ? "Update Sale" : "Save Sale"}
         </button>
       </div>

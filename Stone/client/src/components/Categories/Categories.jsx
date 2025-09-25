@@ -90,7 +90,7 @@ const handleEdit = (cat) => {
           />
           <button
             onClick={handleSubmit}
-            className={`w-full ${editId ? "bg-green-500 hover:bg-green-600" : "bg-blue-500 hover:bg-blue-600"} text-white px-4 py-2 rounded`}
+            className={`w-full ${editId ? "bg-green-500 active:scale-95 hover:bg-green-600" : "bg-blue-500 hover:bg-blue-600"} text-white px-4 py-2 rounded`}
           >
             {editId ? "Update Category" : "Save Category"}
           </button>
@@ -133,13 +133,13 @@ const handleEdit = (cat) => {
                     <td className=" px-4 py-2 flex gap-2">
                       <button
                         onClick={() => handleEdit(cat)}
-                        className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                        className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 active:scale-95"
                       >
                         ✏️
                       </button>
                       <button
                         onClick={() => handleDelete(cat.id)}
-                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 active:scale-95"
                       >
                         🗑️
                       </button>
@@ -164,7 +164,7 @@ const handleEdit = (cat) => {
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => p - 1)}
-                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 active:scale-95"
               >
                 ⬅ Prev
               </button>
@@ -172,7 +172,7 @@ const handleEdit = (cat) => {
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((p) => p + 1)}
-                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 active:scale-95"
               >
                 Next ➡
               </button>

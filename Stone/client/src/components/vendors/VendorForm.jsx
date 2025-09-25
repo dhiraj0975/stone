@@ -53,7 +53,7 @@ export default function VendorForm() {
         <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email"
           className="border p-2 rounded w-full" required />
       </div>
-      <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">
+      <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 active:scale-95">
         Add Vendor
       </button>
     </form>

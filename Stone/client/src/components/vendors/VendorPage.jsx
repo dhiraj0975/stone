@@ -145,7 +145,7 @@ export default function VendorPage() {
           type="submit"
           className={`${
             editId ? "bg-green-600" : "bg-blue-600"
-          } text-white px-4 py-2 rounded md:col-span-2`}
+          } text-white px-4 py-2 active:scale-95 rounded md:col-span-2`}
         >
           {editId ? "Update Vendor" : "Add Vendor"}
         </button>
@@ -187,13 +187,13 @@ export default function VendorPage() {
                 <td className="p-2 border flex gap-2">
                   <button
                     onClick={() => handleEdit(vendor)}
-                    className="bg-yellow-500 text-white px-2 py-1 rounded"
+                    className="bg-yellow-500 text-white px-2 py-1 rounded active:scale-95"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => dispatch(deleteVendor(vendor._id || vendor.id))}
-                    className="bg-red-500 text-white px-2 py-1 rounded"
+                    className="bg-red-500 text-white px-2 py-1 rounded active:scale-95"
                   >
                     Delete
                   </button>

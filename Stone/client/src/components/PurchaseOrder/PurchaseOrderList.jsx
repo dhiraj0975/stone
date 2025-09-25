@@ -87,7 +87,7 @@ const formatBillTime = (billTime) => {
                 <React.Fragment key={sid}>
                   <tr className="odd:bg-white even:bg-gray-50">
                     <td className="border p-2">
-                      <button className="underline cursor-pointer text-blue-500" onClick={() => setOpen((o) => ({ ...o, [sid]: !o[sid] }))}>
+                      <button className="underline cursor-pointer active:scale-95 text-blue-500" onClick={() => setOpen((o) => ({ ...o, [sid]: !o[sid] }))}>
                         {po.po_no || "-"}
                       </button>
                     </td>
@@ -107,19 +107,19 @@ const formatBillTime = (billTime) => {
                     <td className="border p-2 font-semibold">{fx(po?.summary?.grand_total ?? po.grand_total ?? 0)}</td>
                     <td className="border p-2 text-center space-x-2">
   <button
-    className="px-3 py-1 bg-yellow-500 text-white rounded"
+    className="px-3 py-1 bg-yellow-500 text-white rounded active:scale-95"
     onClick={() => onEdit(po)}
   >
     ✏️ Edit
   </button>
   <button
-    className="px-3 py-1 bg-blue-500 text-white rounded"
+    className="px-3 py-1 bg-blue-500 text-white rounded active:scale-95"
     onClick={() => navigate(`/invoice/${sid}`)}
   >
     📄 Invoice
   </button>
   <button
-    className="px-3 py-1 bg-red-500 text-white rounded"
+    className="px-3 py-1 bg-red-500 text-white rounded active:scale-95"
     onClick={() => dispatch(deletePurchaseOrder(sid))}
   >
     ❌ Delete

@@ -403,7 +403,7 @@ const onSubmit = async (e) => {
                   <td className="border px-2 py-1">{fx(c.final)}</td>
 
                   <td className="border px-2 py-1 text-center">
-                    <button type="button" className="text-red-600" onClick={() => removeRow(i)}>
+                    <button type="button" className="text-red-600 active:scale-95" onClick={() => removeRow(i)}>
                       ❌
                     </button>
                   </td>
@@ -432,13 +432,13 @@ const onSubmit = async (e) => {
       </div>
 
       <div className="flex gap-2 mt-3">
-        <button type="button" onClick={addRow} className="px-4 py-2 bg-blue-600 text-white rounded">
+        <button type="button" onClick={addRow} className="px-4 py-2 bg-blue-600 action:scale-95 text-white rounded">
           Add Item
         </button>
        <button
   type="submit"
   disabled={loading || productsLoading || !isFormValid}
-  className={`px-6 py-2 rounded text-white bg-green-700 transition-opacity duration-200 ${
+  className={`px-6 py-2 active:scale-95 rounded text-white bg-green-700 transition-opacity duration-200 ${
     loading || productsLoading || !isFormValid
       ? "opacity-50 cursor-not-allowed"
       : "opacity-100 cursor-pointer"
