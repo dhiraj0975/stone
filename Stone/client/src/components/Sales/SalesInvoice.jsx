@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import SalesAPI from "../../axios/salesAPI";
+import salesAPI from "../../axios/salesAPI";
 // import { useSelector } from "react-redux";
 import { fx } from "../../utils/formatter";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,8 +22,8 @@ useEffect(() => {
         await dispatch(getProducts());
       }
 
-      const res = await SalesAPI.getById(id);
-      const itemsRes = await SalesAPI.getItemsBySaleId(id);
+      const res = await salesAPI.getById(id);
+      const itemsRes = await salesAPI.getItemsBySaleId(id);
 
       if (!active) return;
 

@@ -10,7 +10,7 @@ const api = axios.create({
 });
 
 // ✅ Sales API
-const SalesAPI = {
+const salesAPI = {
   getAll: () => api.get("/sales"),                     // GET all sales
   getById: (id) => api.get(`/sales/${id}`),           // GET sale by ID
   create: (data) => api.post("/sales", data),         // POST new sale
@@ -21,4 +21,4 @@ const SalesAPI = {
    getItemsBySaleId: (id) => api.get(`/sales/${id}/items`), // ✅ added
 };
 
-export default SalesAPI;
+export default salesAPI;

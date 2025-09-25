@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import CustomerAPI from "../../axios/CustomersAPI";
 import { getProducts } from "../../redux/product/productThunks"; 
 import { useDispatch, useSelector } from "react-redux";
-import SalesAPI from "../../axios/SalesAPI";
+import salesAPI from "../../axios/SalesAPI";
 import { toast } from "react-toastify";
 import { useNavigate, useLocation  } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
@@ -37,16 +37,16 @@ useEffect(() => {
       const allCustomers = customersRes.data || [];
       setCustomers(allCustomers);
 
-      // ✅ Fetch products from Redux
-      await dispatch(getProducts());
+      // ✅ Fetch products only once (edit me ya mount me)
+      if (!products.length) {
+        await dispatch(getProducts());
+      }
 
       if (isEditMode && currentSale) {
-        // Normalize date
         const normalizedDate = currentSale.bill_date
           ? new Date(currentSale.bill_date).toISOString().split("T")[0]
           : "";
 
-        // Find customer info
         const selectedCustomer = allCustomers.find(c => Number(c.id) === Number(currentSale.customer_id));
 
         setHeader({
@@ -64,7 +64,7 @@ useEffect(() => {
           status: currentSale.status || "Active"
         });
 
-        // Map items with product info
+        // Map items after products loaded
         const itemsWithProductInfo = (currentSale.items || []).map((r) => {
           const product = products.find(p => Number(p.id) === Number(r.product_id));
           return {
@@ -82,18 +82,16 @@ useEffect(() => {
         ]);
 
       } else {
-        // ✅ New sale logic: fetch new bill no
-        const { data } = await SalesAPI.getNewBillNo();
+        // ✅ New sale logic
+        const { data } = await salesAPI.getNewBillNo();
         setHeader(prev => ({
           ...prev,
           sale_no: data.bill_no,
-          date: new Date().toISOString().split("T")[0], // today by default
+          date: new Date().toISOString().split("T")[0],
           payment_status: "Unpaid",
           payment_method: "Cash",
           status: "Active"
         }));
-
-        // Initialize empty row
         setRows([{ product_id: "", item_name: "", hsn_code: "", qty: 1, rate: 0, d1_percent: 0, gst_percent: 0 }]);
       }
     } catch (err) {
@@ -102,7 +100,7 @@ useEffect(() => {
   };
 
   fetchData();
-}, [dispatch, isEditMode, currentSale, products]);
+}, [dispatch, isEditMode, currentSale]); // ✅ products removed from dependency
 
 
   const onHeader = (e) => {
@@ -209,10 +207,10 @@ const onSubmit = async (e) => {
 
 
    if (isEditMode) {
-  await SalesAPI.update(currentSale.id, payload); // ✅ change here
+  await salesAPI.update(currentSale.id, payload); // ✅ change here
   toast.success("Sale updated successfully!");
 } else {
-  await SalesAPI.create(payload);
+  await salesAPI.create(payload);
   toast.success("Sale created successfully!");
 }
     // ✅ Reset form

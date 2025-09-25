@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux"; // ✅ useDispatch import
 import { Link } from "react-router-dom";
-import SalesAPI from "../../axios/salesAPI";
+import salesAPI from "../../axios/salesAPI";
 import { fx } from "../../utils/formatter";
 import { getProducts } from "../../redux/product/productThunks";
 
@@ -21,13 +21,13 @@ useEffect(() => {
       await dispatch(getProducts());
 
       // Get all sales
-      const res = await SalesAPI.getAll();
+      const res = await salesAPI.getAll();
       const sales = res.data;
 
       // For each sale, fetch its items
       const salesWithItems = await Promise.all(
         sales.map(async (s) => {
-          const itemsRes = await SalesAPI.getItemsBySaleId(s.id);
+          const itemsRes = await salesAPI.getItemsBySaleId(s.id);
           return { ...s, items: itemsRes.data };
         })
       );
@@ -49,7 +49,7 @@ useEffect(() => {
   const deleteSale = async (id) => {
     if (!window.confirm("Are you sure you want to delete this sale?")) return;
     try {
-      await SalesAPI.delete(id);
+      await salesAPI.delete(id);
       setSales((prev) => prev.filter((s) => s.id !== id));
       alert("Sale deleted successfully!");
     } catch (err) {

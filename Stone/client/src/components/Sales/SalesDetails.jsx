@@ -1,6 +1,6 @@
 // import React, { useEffect, useState } from "react";
 // import { useParams, Link } from "react-router-dom";
-// import SalesAPI from "../../axios/salesAPI";
+// import salesAPI from "../../axios/salesAPI";
 // import { fx } from "../../utils/formatter";
 
 // const SalesDetails = () => {
@@ -12,7 +12,7 @@
 //     const fetchCustomerSales = async () => {
 //       try {
 //         setLoading(true);
-//         const res = await SalesAPI.getSalesByCustomerId(id); // backend API
+//         const res = await salesAPI.getSalesByCustomerId(id); // backend API
 //         setSales(res.data);
 //       } catch (err) {
 //         console.error(err);
