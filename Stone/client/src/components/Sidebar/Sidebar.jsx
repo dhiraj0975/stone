@@ -1,16 +1,19 @@
 // src/components/Sidebar.jsx
 import React, { useState } from "react";
-import {
-  FiHome,
-  FiUsers,
-  FiShoppingBag,
+import { 
+  FiHome, 
+  FiUsers, 
+  FiUserCheck, 
+  FiChevronLeft ,
+  FiTag, 
+  FiPackage, 
+  FiShoppingBag, 
+  FiFileText, 
+  FiShoppingCart,
   FiLayers,
-  FiPackage,
   FiPieChart,
-  FiFileText,
   FiLogOut,
-  FiChevronLeft,
-  FiChevronRight,
+  FiTrendingUp
 } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -18,20 +21,20 @@ const Sidebar = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
 // 
-  const mainMenu = [
-    { name: "Dashboard", path: "/", icon: <FiHome size={20} /> },
-    { name: "Vendor Master", path: "/vendor", icon: <FiUsers size={20} /> },
-    { name: "Categories", path: "/category", icon: <FiUsers size={20} /> },
-    { name: "Product", path: "/product", icon: <FiPackage size={20} /> },
-    { name: "Purchases", path: "/purchases", icon: <FiShoppingBag size={20} /> },
-    { name: "PO List", path: "/purchase-orders", icon: <FiFileText size={20} /> },
-    { name: "Sales", path: "/sales", icon: <FiShoppingBag size={20} /> },
-    { name: "BOM", path: "/bom", icon: <FiLayers size={20} /> },
-    { name: "Production Entry", path: "/production", icon: <FiPackage size={20} /> },
-    { name: "Inventory", path: "/inventory", icon: <FiPieChart size={20} /> },
-    { name: "Invoicing", path: "/invoicing", icon: <FiFileText size={20} /> },
-    
-  ];
+ const mainMenu = [
+  { name: "Dashboard", path: "/", icon: <FiHome size={20} /> },
+  { name: "Vendor Master", path: "/vendor", icon: <FiUserCheck size={20} /> },
+  { name: "Customers", path: "/customers", icon: <FiUsers size={20} /> },
+  { name: "Categories", path: "/category", icon: <FiTag size={20} /> },
+  { name: "Product", path: "/product", icon: <FiPackage size={20} /> },
+  { name: "Purchases", path: "/purchases", icon: <FiShoppingBag size={20} /> },
+  { name: "PO List", path: "/purchase-orders", icon: <FiFileText size={20} /> },
+  { name: "Sales", path: "/sales", icon: <FiShoppingCart size={20} /> },
+  { name: "BOM", path: "/bom", icon: <FiLayers size={20} /> },
+  { name: "Production Entry", path: "/production", icon: <FiTrendingUp size={20} /> },
+  { name: "Inventory", path: "/inventory", icon: <FiPieChart size={20} /> },
+  { name: "Invoicing", path: "/invoicing", icon: <FiFileText size={20} /> },
+];
 
   const generalMenu = [
     { name: "Logout", path: "/login", icon: <FiLogOut size={20} /> },

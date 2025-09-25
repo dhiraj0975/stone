@@ -6,11 +6,12 @@ const api = axios.create({
 });
 
 const CustomerAPI = {
-  getAll: () => api.get("/customers"),          // GET all customers
-  getById: (id) => api.get(`/customers/${id}`),// GET single customer
-  create: (data) => api.post("/customers", data), // CREATE new customer
+  getAll: () => api.get("/customers"),                   // GET all customers
+  getById: (id) => api.get(`/customers/${id}`),         // GET single customer
+  create: (data) => api.post("/customers", data),       // CREATE new customer
   update: (id, data) => api.put(`/customers/${id}`, data), // UPDATE customer
-  delete: (id) => api.delete(`/customers/${id}`), // DELETE customer
+  delete: (id) => api.delete(`/customers/${id}`),       // DELETE customer
+  toggleStatus: (id) => api.put(`/customers/${id}/toggle-status`), // Toggle Active/Inactive
 };
 
 export default CustomerAPI;

@@ -136,9 +136,9 @@ const Purchase = {
 
       // 2️⃣ Insert purchase
       const [purchaseResult] = await conn.query(
-        `INSERT INTO purchases (vendor_id, po_id, bill_no, bill_date, total_amount, status)
+        `INSERT INTO purchases (vendor_id,  po_id, bill_no, bill_date, total_amount, status)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [vendor_id, po_id || null, bill_no, formattedDate, total_amount, status || "Active"]
+        [vendor_id, gst_no || null, po_id || null, bill_no, formattedDate, total_amount, status || "Active"]
       );
 
       const purchaseId = purchaseResult.insertId;
@@ -183,7 +183,7 @@ const Purchase = {
   findAll: async () => {
     const [rows] = await db.query(`
       SELECT 
-        p.id, p.bill_no, p.bill_date, p.total_amount, p.status,
+        p.id, p.bill_no, p.bill_date,  p.total_amount, p.status,
         v.name AS vendor_name, v.firm_name,
         GROUP_CONCAT(pr.product_name SEPARATOR ', ') AS products
       FROM purchases p

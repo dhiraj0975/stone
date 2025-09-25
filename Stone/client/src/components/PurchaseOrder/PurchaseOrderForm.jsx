@@ -107,15 +107,19 @@ const onRow = (i, field, value) => {
     const numericFields = ["qty", "rate", "d1_percent", "gst_percent", "product_id"];
     next[i] = {
       ...next[i],
-      [field]: numericFields.includes(field) ? Number(value || 0) : value,
+      [field]: numericFields.includes(field)
+        ? (value === "" ? 0 : Number(value))
+        : value,
     };
     if (field === "product_id") {
       const product = products.find((p) => String(p.id ?? p._id) === String(value));
       next[i].item_name = product ? product.product_name || "" : "";
+      next[i].hsn_code = product ? product.hsn_code || "" : "";
     }
     return next;
   });
 };
+
 
 
   const addRow = () =>
@@ -361,29 +365,35 @@ const onSubmit = async (e) => {
 
                   <td className="border px-2 py-1">
                     <div className="flex gap-1">
-                      <select
-                        className="border rounded p-1 w-44"
-                        value={r.product_id}
-                        onChange={(e) => {
-                          const pid = e.target.value;
-                          const p = products.find((x) => String(x.id ?? x._id) === String(pid));
-                          onRow(i, "product_id", pid);
-                          if (p) onRow(i, "item_name", p.product_name || "");
-                        }}
-                      >
-                        <option value="">Select</option>
-                        {products.map((p) => (
-                          <option key={p.id ?? p._id} value={String(p.id ?? p._id)}>
-                            {p.product_name}
-                          </option>
-                        ))}
-                      </select>
+                   <select
+  className="border rounded p-1 w-44"
+  value={r.product_id}
+  onChange={(e) => {
+    const pid = e.target.value;
+    const p = products.find((x) => String(x.id) === String(pid));
+    
+    // ✅ update product_id & item_name
+    onRow(i, "product_id", pid);
+    if (p) {
+      onRow(i, "item_name", p.product_name || "");
+      onRow(i, "hsn_code", p.hsn_code || ""); // 👈 auto-fill HSN
+    }
+  }}
+>
+  <option value="">Select</option>
+  {products.map((p) => (
+    <option key={p.id} value={String(p.id)}>
+      {p.product_name}
+    </option>
+  ))}
+</select>
                     </div>
                   </td>
 
                   <td className="border px-2 py-1">
                     <input
-                      className="border rounded p-1 w-24"
+                    readOnly
+                      className="border cursor-not-allowed bg-gray-100 rounded p-1 w-24"
                       value={r.hsn_code}
                       onChange={(e) => onRow(i, "hsn_code", e.target.value)}
                     />
@@ -393,7 +403,7 @@ const onSubmit = async (e) => {
                     <input
                       type="number"
                       className="border rounded p-1 w-20"
-                      value={r.qty}
+                      value={r.qty === 0 ? "" : r.qty}
                       onChange={(e) => onRow(i, "qty", e.target.value)}
                     />
                   </td>

@@ -1,82 +1,142 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import SalesAPI from "../../axios/salesAPI";
+// import { useSelector } from "react-redux";
 import { fx } from "../../utils/formatter";
+import { useDispatch, useSelector } from "react-redux";
+import { getProducts } from "../../redux/product/productThunks";
+import "./Invoice.css";
 
 const SalesInvoice = () => {
-  const { saleId } = useParams();
+  const { id } = useParams();
   const [sale, setSale] = useState(null);
-  const [loading, setLoading] = useState(true);
+ const dispatch = useDispatch();
+const products = useSelector(state => state.product.list || []);
 
-  useEffect(() => {
-    if (!saleId) return;
-    SalesAPI.getInvoice(saleId)
-      .then((res) => {
-        setSale(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching invoice:", err);
-        setLoading(false);
+useEffect(() => {
+  let active = true;
+
+  const fetchSale = async () => {
+    try {
+      if (!products.length) {
+        await dispatch(getProducts());
+      }
+
+      const res = await SalesAPI.getById(id);
+      const itemsRes = await SalesAPI.getItemsBySaleId(id);
+
+      if (!active) return;
+
+      // Optional: merge product info with items here
+      const itemsWithProduct = (itemsRes.data || []).map(r => {
+        const product = products.find(p => Number(p.id) === Number(r.product_id));
+        return { ...r, product_name: product?.product_name || "—", hsn_code: product?.hsn_code || "—" };
       });
-  }, [saleId]);
 
-  if (loading) return <div>Loading...</div>;
-  if (!sale) return <div>No sale found!</div>;
+      setSale({ ...res.data, items: itemsWithProduct });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch sale");
+    }
+  };
 
-  const totalAmount = sale.items.reduce((a, i) => a + i.qty * i.rate, 0);
+  fetchSale();
+
+  return () => { active = false; }
+}, [id, dispatch, products.length]);
+
+
+  if (!sale) return <p>Loading sale invoice...</p>;
+
+  const fmt = (val) => Number(val || 0).toFixed(2);
+
+  // Totals
+  const totals = (sale.items || []).reduce(
+    (acc, r) => {
+      const base = (r.qty || 0) * (r.rate || 0);
+      const perUnitDisc = ((r.rate || 0) * (r.discount_rate || 0)) / 100;
+      const totalDisc = (r.qty || 0) * perUnitDisc;
+      const taxable = Math.max(base - totalDisc, 0);
+      const gstAmt = (taxable * (r.gst_percent || 0)) / 100;
+      const final = taxable + gstAmt;
+
+      acc.total_taxable += taxable;
+      acc.total_gst += gstAmt;
+      acc.total_amount += final;
+      return acc;
+    },
+    { total_taxable: 0, total_gst: 0, total_amount: 0 }
+  );
 
   return (
-    <div className="p-3 max-w-3xl mx-auto border shadow rounded bg-white">
-      <h2 className="text-2xl font-bold text-center mb-3">Sales Invoice</h2>
-      <div className="mb-2 flex justify-between">
-        <div>
-          <div><strong>Bill No:</strong> {sale.bill_no}</div>
-          <div><strong>Date:</strong> {sale.bill_date}</div>
-          <div><strong>Customer:</strong> {sale.customer_name}</div>
-        </div>
-        <div>
-          <div><strong>Status:</strong> {sale.status}</div>
-        </div>
+    <div id="invoice-print" className="p-6 bg-white shadow rounded-xl">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Invoice #{sale.bill_no}</h1>
+        <button
+          onClick={() => window.print()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          🖨️ Print
+        </button>
       </div>
 
-      <table className="w-full border text-sm mb-3">
-        <thead className="bg-gray-700 text-white">
+      {/* Sale meta */}
+      <div className="mb-4">
+        <p><strong>Date:</strong> {sale.bill_date}</p>
+        <p><strong>Customer:</strong> {sale.customer_name}</p>
+        <p><strong>Status:</strong> {sale.status}</p>
+        <p><strong>Payment:</strong> {sale.payment_status} ({sale.payment_method})</p>
+      </div>
+
+      {/* Items Table */}
+      <table className="w-full border mt-4">
+        <thead className="bg-gray-100">
           <tr>
-            <th>SI</th>
-            <th>Product</th>
-            <th>Qty</th>
-            <th>Rate</th>
-            <th>Amount</th>
+            {["SI", "Item Name", "HSN Code", "Qty", "Rate", "Amount", "Disc %", "GST%", "GST Amount", "Final Amount"].map((h,i)=>(
+              <th key={i} className="border p-2">{h}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {sale.items.map((item, idx) => (
-            <tr key={item.id} className="odd:bg-white even:bg-gray-50">
-              <td>{idx + 1}</td>
-              <td>{item.product_name}</td>
-              <td>{item.qty}</td>
-              <td>{fx(item.rate)}</td>
-              <td>{fx(item.qty * item.rate)}</td>
-            </tr>
-          ))}
+          {(sale.items || []).map((r, i) => {
+            const base = (r.qty || 0) * (r.rate || 0);
+            const perUnitDisc = ((r.rate || 0) * (r.discount_rate || 0)) / 100;
+            const totalDisc = (r.qty || 0) * perUnitDisc;
+            const taxable = Math.max(base - totalDisc, 0);
+            const gstAmt = (taxable * (r.gst_percent || 0)) / 100;
+            const final = taxable + gstAmt;
+
+            const product = products.find(p => Number(p.id) === Number(r.product_id));
+
+            return (
+              <tr key={i} className="odd:bg-white even:bg-gray-50">
+                <td className="border text-center p-2">{i + 1}</td>
+                <td className="border text-center p-2">{product?.product_name || "—"}</td>
+                <td className="border text-center p-2">{product?.hsn_code || "—"}</td>
+                <td className="border text-center p-2">{r.qty || 0}</td>
+                <td className="border text-center p-2">{fx(r.rate)}</td>
+                <td className="border text-center p-2">{fx(base)}</td>
+                <td className="border text-center p-2">{r.discount_rate || 0}</td>
+                <td className="border text-center p-2">{r.gst_percent || 0}</td>
+                <td className="border text-center p-2">{fx(gstAmt)}</td>
+                <td className="border text-center p-2 font-semibold">{fx(final)}</td>
+              </tr>
+            )
+          })}
         </tbody>
+
         <tfoot>
-          <tr className="font-bold bg-gray-100">
-            <td colSpan={4} className="text-right px-2 py-1">Total</td>
-            <td className="px-2 py-1">{fx(totalAmount)}</td>
+          <tr className="bg-gray-50 font-bold">
+            <td className="border text-center p-2 text-right" colSpan={5}>Totals</td>
+            <td className="border text-center p-2">{fx(totals.total_taxable)}</td>
+            <td className="border text-center p-2">—</td>
+            <td className="border text-center p-2">—</td>
+            <td className="border text-center p-2">{fx(totals.total_gst)}</td>
+            <td className="border text-center p-2">{fx(totals.total_amount)}</td>
           </tr>
         </tfoot>
       </table>
-
-      <div className="text-center mt-4">
-        <button
-          onClick={() => window.print()}
-          className="px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          Print Invoice
-        </button>
-      </div>
     </div>
   );
 };

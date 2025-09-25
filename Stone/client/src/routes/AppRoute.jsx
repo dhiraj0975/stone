@@ -23,6 +23,8 @@ import SalesList from "../components/Sales/SalesList";
 import SalesPage from "../components/Sales/SalesPage";
 import SalesForm from "../components/Sales/SalesForm";
 import SalesInvoice from "../components/Sales/SalesInvoice";
+import CustomerRegistration from "../components/Customers/CustomerRegistration";
+import Customer from "../components/Customers/Customer";
 
 const AppRoute = () => {
   const { loading } = useSelector((state) => state.alerts);
@@ -51,18 +53,25 @@ const AppRoute = () => {
           <Route path="/purchases/create/:poId" element={<PurchaseForm />} />
           <Route path="/invoice/:id" element={<Invoice />} />
 
+           <Route path="/customers" element={<Customer />} />
+          <Route path="/customers/create" element={<CustomerRegistration />} />
+          <Route path="/customers/edit/:id" element={<CustomerRegistration />} />
+
           {/* Sales Routes */}
           <Route path="/sales" element={<SalesPage />}>
             <Route index element={<SalesList />} />
             <Route path="create" element={<SalesForm products={products} customers={customers} />} />
             <Route path="edit/:saleId" element={<SalesForm products={products} customers={customers} />} />
-            <Route path="invoice/:saleId" element={<SalesInvoice />} />
+            <Route path="/sales/invoice/:id" element={<SalesInvoice />} />
           </Route>
         </Route>
 
         {/* 🌐 Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/unauthorized" element={<h1>Unauthorized Access</h1>} />
+
+        
+
 
         {/* 🚫 Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />

@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const customerRouter = require("./routes/customerRoutes.js");
+require("dotenv").config();
 
 
 const app = express();
@@ -54,7 +54,7 @@ app.use("/api/categories", require("./routes/Category.routes.js"));
 app.use("/api/purchases", require("./routes/purchase.routes.js"));
 app.use("/api/purchase-orders", require("./routes/purchaseOrder.routes.js"));
 app.use('/api/sales', require('./routes/sales.routes.js'));
-app.use('/api/customers', customerRouter);
+app.use('/api/customers', require('./routes/customer.routes.js'));
 
 // Export app
 module.exports = app;

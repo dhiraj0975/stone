@@ -8,20 +8,22 @@ const SaleItems = {
 
     for (const item of items) {
       // 1️⃣ Fetch product rate & gst
-      const [product] = await db.execute(
-        'SELECT rate, gst_percent FROM products WHERE id=?',
-        [item.product_id]
-      );
+    const [product] = await db.execute(
+  'SELECT sales_rate AS rate FROM products WHERE id=?',
+  [item.product_id]
+);
+
       if (!product.length) continue;
 
-      const rate = product[0].rate;
-      const gst_percent = product[0].gst_percent || 0;
-      const qty = item.qty || 1;
-      const discount_rate = item.discount_rate || 0;
-      const discount_amount = item.discount_amount || (rate * qty * discount_rate / 100);
-      const taxable_amount = rate * qty - discount_amount;
-      const gst_amount = taxable_amount * gst_percent / 100;
-      const net_total = taxable_amount + gst_amount;
+   const rate = product[0].rate;
+const gst_percent = item.gst_percent !== undefined ? item.gst_percent : (product[0].gst_percent || 0);
+const qty = item.qty || 1;
+const discount_rate = item.discount_rate || 0;
+const discount_amount = item.discount_amount || (rate * qty * discount_rate / 100);
+const taxable_amount = rate * qty - discount_amount;
+const gst_amount = taxable_amount * gst_percent / 100;
+const net_total = taxable_amount + gst_amount;
+
 
       total_taxable += taxable_amount;
       total_gst += gst_amount;

@@ -143,66 +143,26 @@ const [rows, setRows] = useState([
 // -------------------- On Submit --------------------
 const onSubmit = async (e) => {
   e.preventDefault();
-
-  // 1️⃣ Basic validation
-  if (!header.date) {
-    alert("Bill date is required!");
-    return;
-  }
-  if (!header.vendor_id) {
-    alert("Select a supplier!");
-    return;
-  }
-  if (!header.po_no.trim()) {
-    alert("PO No is required!");
-    return;
-  }
-
-  // 2️⃣ Validate rows/items
-  const items = rows.map((r) => ({
-    product_id: r.product_id,
-    qty: Number(r.qty),
-    rate: Number(r.rate),
-    unit: "PCS",
-  }));
-
-  if (items.some(i => !i.product_id || i.qty <= 0 || i.rate <= 0)) {
-    alert("All items must have a product selected and qty/rate > 0");
-    return;
-  }
-
-  // 3️⃣ Convert 12h time to 24h format
-  let billTime24 = "00:00:00";
-  if (header.bill_time) {
-    let [hh, mm] = header.bill_time.split(":").map(Number);
-    if (header.bill_time_am_pm === "PM" && hh < 12) hh += 12;
-    if (header.bill_time_am_pm === "AM" && hh === 12) hh = 0;
-    billTime24 = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00`;
-  }
-
-  // 4️⃣ Prepare payload
-  const payload = {
-    vendor_id: header.vendor_id,
-    po_id: poId || undefined, // undefined for new, backend handles it
-    bill_no: header.po_no,
-    bill_date: header.date ? new Date(header.date).toISOString().split("T")[0] : null,
-    bill_time: billTime24,
-    items,
-  };
-
-  console.log("Payload:", payload); // debug
-
-  // 5️⃣ Send to backend
   try {
-    const res = await PurchaseAPI.create(payload);
-    console.log("Purchase saved:", res.data);
-    alert("Purchase saved successfully!");
-    // Reset form / redirect if needed
+    setLoading(true);
+    const payload = { ...header, bill_no: header.sale_no, items: rows, summary: totals };
+
+    if (isEditMode) {
+      // ✅ Use SalesAPI.update instead of axios.put
+      await SalesAPI.update(sale.id, payload);
+    } else {
+      await SalesAPI.create(payload);
+    }
+
+    if (onSubmitted) onSubmitted();
   } catch (err) {
-    console.error("Save error:", err.response?.data || err);
-    alert("Error saving purchase");
+    console.error(err);
+    alert("Failed to save sale");
+  } finally {
+    setLoading(false);
   }
 };
+
 
 
 
@@ -348,28 +308,35 @@ const onSubmit = async (e) => {
                   <td className="border px-2 py-1">
                     <div className="flex gap-1">
                       <select
-                        className="border rounded p-1 w-44"
-                        value={r.product_id}
-                        onChange={(e) => {
-                          const pid = e.target.value;
-                          const p = products.find((x) => String(x.id) === String(pid));
-                          onRow(i, "product_id", pid);
-                          if (p) onRow(i, "item_name", p.product_name || "");
-                        }}
-                      >
-                        <option value="">Select</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={String(p.id)}>
-                            {p.product_name}
-                          </option>
-                        ))}
-                      </select>
+  className="border rounded p-1 w-44"
+  value={r.product_id}
+  onChange={(e) => {
+    const pid = e.target.value;
+    const p = products.find((x) => String(x.id) === String(pid));
+    
+    // ✅ update product_id & item_name
+    onRow(i, "product_id", pid);
+    if (p) {
+      onRow(i, "item_name", p.product_name || "");
+      onRow(i, "hsn_code", p.hsn_code || ""); // 👈 auto-fill HSN
+    }
+  }}
+>
+  <option value="">Select</option>
+  {products.map((p) => (
+    <option key={p.id} value={String(p.id)}>
+      {p.product_name}
+    </option>
+  ))}
+</select>
+
                     </div>
                   </td>
 
                   <td className="border px-2 py-1">
                     <input
-                      className="border rounded p-1 w-24"
+                      readOnly
+                      className="border cursor-not-allowed bg-gray-100 rounded p-1 w-24"
                       value={r.hsn_code}
                       onChange={(e) => onRow(i, "hsn_code", e.target.value)}
                     />
