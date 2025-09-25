@@ -13,6 +13,7 @@ import {
   FiLayers,
   FiPieChart,
   FiLogOut,
+   FiChevronRight,
   FiTrendingUp
 } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";

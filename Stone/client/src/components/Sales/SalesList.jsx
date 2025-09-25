@@ -109,12 +109,14 @@ useEffect(() => {
                     <strong>Payment:</strong> {s.payment_status} ({s.payment_method})
                   </div>
                   <div className="flex gap-2">
-                    <Link
-                      to={`/sales/edit/${s.id}`}
-                      className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                    >
-                      Edit
-                    </Link>
+<Link
+  to={`/sales/edit/${s.id}`}
+  state={{ sale: s }}
+  className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+>
+  Edit
+</Link>
+
                     <button
                       onClick={() => deleteSale(s.id)}
                       className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"

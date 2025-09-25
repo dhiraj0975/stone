@@ -4,12 +4,16 @@ import { getProducts } from "../../redux/product/productThunks";
 import { useDispatch, useSelector } from "react-redux";
 import SalesAPI from "../../axios/SalesAPI";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation  } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
 const fx = (n) => (isNaN(n) ? "0.000" : Number(n).toFixed(3));
 
 const SalesForm = ({ sale, onSubmitted }) => {
+ const location = useLocation();
+const saleFromLocation = location.state?.sale; // List se edit ke liye
+const currentSale = sale || saleFromLocation;
+const isEditMode = Boolean(currentSale);
   const [customers, setCustomers] = useState([]);
 const [header, setHeader] = useState({});
 const [rows, setRows] = useState([]);
@@ -23,54 +27,82 @@ const dispatch = useDispatch(); // dispatch bhi chahiye thunk ke liye
 
 
 
-  const isEditMode = Boolean(sale);
+
 
 useEffect(() => {
   const fetchData = async () => {
     try {
+      // ✅ Fetch customers
       const customersRes = await CustomerAPI.getAll();
-      setCustomers(customersRes.data || []);
+      const allCustomers = customersRes.data || [];
+      setCustomers(allCustomers);
 
-      dispatch(getProducts());
+      // ✅ Fetch products from Redux
+      await dispatch(getProducts());
 
-      if (isEditMode && sale) {
-        // Edit mode: set header from existing sale
-        const normalizedDate = sale.date ? new Date(sale.date).toISOString().split("T")[0] : "";
+      if (isEditMode && currentSale) {
+        // Normalize date
+        const normalizedDate = currentSale.bill_date
+          ? new Date(currentSale.bill_date).toISOString().split("T")[0]
+          : "";
+
+        // Find customer info
+        const selectedCustomer = allCustomers.find(c => Number(c.id) === Number(currentSale.customer_id));
+
         setHeader({
-          ...sale,
+          sale_no: currentSale.bill_no || "",
           date: normalizedDate,
-          bill_time_am_pm: "PM",
-           payment_status: sale.payment_status || "Unpaid",
-           payment_method: sale.payment_method || "Cash",
+          bill_time: currentSale.bill_time || "",
+          bill_time_am_pm: currentSale.bill_time_am_pm || "PM",
+          customer_id: currentSale.customer_id || "",
+          address: selectedCustomer?.address || "",
+          mobile_no: selectedCustomer?.phone || "",
+          gst_no: selectedCustomer?.gst_no || "",
+          terms_condition: currentSale.terms_condition || "",
+          payment_status: currentSale.payment_status || "Unpaid",
+          payment_method: currentSale.payment_method || "Cash",
+          status: currentSale.status || "Active"
         });
-        setRows(sale.items?.length ? sale.items : [
+
+        // Map items with product info
+        const itemsWithProductInfo = (currentSale.items || []).map((r) => {
+          const product = products.find(p => Number(p.id) === Number(r.product_id));
+          return {
+            ...r,
+            item_name: product?.product_name || r.item_name || "",
+            hsn_code: product?.hsn_code || r.hsn_code || "",
+            rate: r.rate || product?.sales_rate || 0,
+            d1_percent: r.discount_rate || 0,
+            gst_percent: r.gst_percent || 0
+          };
+        });
+
+        setRows(itemsWithProductInfo.length ? itemsWithProductInfo : [
           { product_id: "", item_name: "", hsn_code: "", qty: 1, rate: 0, d1_percent: 0, gst_percent: 0 }
         ]);
+
       } else {
-        // New sale: get new sale_no from API
-        const res = await SalesAPI.getNewBillNo();
-        setHeader({
-          sale_no: res.data?.bill_no || "",
-          date: "",
-          bill_time: "",
-          bill_time_am_pm: "PM",
-          customer_id: "",
-          address: "",
-          mobile_no: "",
-          gst_no: "",
-          terms_condition: "",
-        });
-        setRows([
-          { product_id: "", item_name: "", hsn_code: "", qty: 1, rate: 0, d1_percent: 0, gst_percent: 0 }
-        ]);
+        // ✅ New sale logic: fetch new bill no
+        const { data } = await SalesAPI.getNewBillNo();
+        setHeader(prev => ({
+          ...prev,
+          sale_no: data.bill_no,
+          date: new Date().toISOString().split("T")[0], // today by default
+          payment_status: "Unpaid",
+          payment_method: "Cash",
+          status: "Active"
+        }));
+
+        // Initialize empty row
+        setRows([{ product_id: "", item_name: "", hsn_code: "", qty: 1, rate: 0, d1_percent: 0, gst_percent: 0 }]);
       }
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error("Failed to fetch sale form data:", err);
     }
   };
 
   fetchData();
-}, [dispatch, isEditMode, sale]);
+}, [dispatch, isEditMode, currentSale, products]);
 
 
   const onHeader = (e) => {
@@ -176,14 +208,13 @@ const onSubmit = async (e) => {
     console.log(JSON.stringify(payload, null, 2));
 
 
-    if (isEditMode) {
-      await SalesAPI.update(sale.id, payload);
-      toast.success("Sale updated successfully!");
-    } else {
-      await SalesAPI.create(payload);
-      toast.success("Sale created successfully!");
-    }
-
+   if (isEditMode) {
+  await SalesAPI.update(currentSale.id, payload); // ✅ change here
+  toast.success("Sale updated successfully!");
+} else {
+  await SalesAPI.create(payload);
+  toast.success("Sale created successfully!");
+}
     // ✅ Reset form
     setHeader({
       sale_no: "",
@@ -314,7 +345,8 @@ const onSubmit = async (e) => {
                   </td>
                   <td className="border px-2 py-1"><input readOnly className="border cursor-not-allowed bg-gray-100 rounded p-1 w-24" value={r.hsn_code} /></td>
                   <td className="border px-2 py-1"><input type="number" className="border rounded p-1 w-20" value={r.qty} onChange={e => onRow(i, "qty", e.target.value)} /></td>
-                  <td className="border px-2 py-1"><input type="number" readOnly className="border cursor-not-allowed bg-gray-100 rounded p-1 w-20" value={r.rate} onChange={e => onRow(i, "rate", e.target.value)} /></td>
+                  <td className="border px-2 py-1"><input type="number" readOnly value={r.rate} className="border cursor-not-allowed bg-gray-100 rounded p-1 w-20" />
+</td>
                   <td className="border px-2 py-1">{fx(c.base)}</td>
                   <td className="border px-2 py-1"><input type="number" className="border rounded p-1 w-16" value={r.d1_percent} onChange={e => onRow(i, "d1_percent", e.target.value)} /></td>
                   <td className="border px-2 py-1"><input type="number" className="border rounded p-1 w-20 bg-gray-100" value={fx(c.perUnitDisc)} readOnly /></td>
