@@ -58,19 +58,20 @@ const Sales = {
       total_gst += gst_amount;
       total_amount += net_total;
 
-      itemValues.push([
-        sale_id,
-        item.product_id,
-        rate,
-        qty,
-        discount_rate,
-        discount_amount,
-        taxable_amount,
-        gst_percent,
-        gst_amount,
-        net_total,
-        item.unit || 'PCS'
-      ]);
+    itemValues.push([
+  Number(item.sale_id), // ensure integer for foreign key
+  Number(item.product_id), // optional, safety ke liye
+  parseFloat(rate),
+  parseFloat(qty),
+  parseFloat(discount_rate),
+  parseFloat(discount_amount),
+  parseFloat(taxable_amount),
+  parseFloat(gst_percent),
+  parseFloat(gst_amount),
+  parseFloat(net_total),
+  item.unit || 'PCS'
+]);
+
     }
 
     if (itemValues.length) {
@@ -114,16 +115,81 @@ const Sales = {
   },
 
   // --- UPDATE SALE (BASIC FIELDS) ---
+// --- UPDATE SALE ---
+  // --- UPDATE SALE (model-level, db only, no req/res) ---
+  // --- UPDATE SALE ---
   update: async (id, data) => {
-    const { customer_id, bill_no, bill_date, status, payment_status, payment_method, remarks } = data;
+    let { customer_id, bill_no, bill_date, status, payment_status, payment_method, remarks, total_taxable, total_gst, total_amount } = data;
+
+    // Ensure customer_id is valid
+    customer_id = Number(customer_id);
+    if (!customer_id || isNaN(customer_id)) throw new Error('customer_id is required');
+
     const [result] = await db.execute(
       `UPDATE sales 
-       SET customer_id=?, bill_no=?, bill_date=?, status=?, payment_status=?, payment_method=?, remarks=? 
+       SET customer_id=?, bill_no=?, bill_date=?, status=?, payment_status=?, payment_method=?, remarks=?,
+           total_taxable=?, total_gst=?, total_amount=?
        WHERE id=?`,
-      [customer_id, bill_no, bill_date, status, payment_status, payment_method, remarks, id]
+      [
+        customer_id,
+        bill_no ?? null,
+        bill_date ?? null,
+        status ?? 'Active',
+        payment_status ?? 'Unpaid',
+        payment_method ?? 'Cash',
+        remarks ?? null,
+        total_taxable ?? 0,
+        total_gst ?? 0,
+        total_amount ?? 0,
+        id
+      ]
     );
+
     return result;
   },
+
+
+  // --- UPDATE SALE (controller-level) ---
+  updateSaleHandler: async (req, res) => {
+    try {
+      const sale_id = req.params.id;
+      let { customer_id, bill_no, bill_date, items, status, payment_status, payment_method, remarks } = req.body;
+
+      customer_id = customer_id ?? null;
+      bill_no = bill_no ?? null;
+      bill_date = bill_date ?? null;
+      status = status || 'Active';
+      payment_status = payment_status || 'Unpaid';
+      payment_method = payment_method || 'Cash';
+      remarks = remarks ?? null;
+
+      // 1️⃣ Update sale info
+      await Sales.update(sale_id, { customer_id, bill_no, bill_date, status, payment_status, payment_method, remarks });
+
+      let total_taxable = 0, total_gst = 0, total_amount = 0;
+
+      // 2️⃣ Update items
+      if (items && items.length) {
+        await SaleItems.deleteBySaleId(sale_id);
+        const totals = await SaleItems.create(items.map(i => ({ ...i, sale_id })));
+        total_taxable = totals.total_taxable;
+        total_gst = totals.total_gst;
+        total_amount = totals.total_amount;
+
+        // 3️⃣ Update totals
+        await Sales.update(sale_id, { total_taxable, total_gst, total_amount });
+      }
+
+      res.json({ message: 'Sale updated successfully', total_taxable, total_gst, total_amount });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Server Error' });
+    }
+  }
+
+
+
+,
 
   // --- DELETE SALE ---
   delete: async (id) => {

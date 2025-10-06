@@ -319,6 +319,7 @@ const onSubmit = async (e) => {
     if (p) {
       onRow(i, "item_name", p.product_name || "");
       onRow(i, "hsn_code", p.hsn_code || ""); // 👈 auto-fill HSN
+      onRow(i, "rate", Number(p.purchase_rate || 0)); // 👈 yahi line add ki
     }
   }}
 >

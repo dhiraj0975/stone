@@ -55,6 +55,8 @@ app.use("/api/purchases", require("./routes/purchase.routes.js"));
 app.use("/api/purchase-orders", require("./routes/purchaseOrder.routes.js"));
 app.use('/api/sales', require('./routes/sales.routes.js'));
 app.use('/api/customers', require('./routes/customer.routes.js'));
+app.use('/api/payments', require('./routes/salePayments.routes'));
+
 
 // Export app
 module.exports = app;

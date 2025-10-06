@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import salesAPI from "../../axios/salesAPI";
 import { fx } from "../../utils/formatter";
 import { getProducts } from "../../redux/product/productThunks";
+import paymentsAPI from "../../axios/salePaymentsAPI";
 
 
 const SalesList = () => {
@@ -25,14 +26,24 @@ useEffect(() => {
       const sales = res.data;
 
       // For each sale, fetch its items
-      const salesWithItems = await Promise.all(
-        sales.map(async (s) => {
-          const itemsRes = await salesAPI.getItemsBySaleId(s.id);
-          return { ...s, items: itemsRes.data };
-        })
-      );
+const salesWithDetails = await Promise.all(
+  sales.map(async (s) => {
+    const [itemsRes, paymentsRes] = await Promise.all([
+      salesAPI.getItemsBySaleId(s.id),
+      paymentsAPI.getBySaleId(s.id) // <-- correct API call
+    ]);
 
-      setSales(salesWithItems);
+    const pending = calculatePending(itemsRes.data, paymentsRes.data);
+
+    return { ...s, items: itemsRes.data, payments: paymentsRes.data, pending };
+  })
+);
+
+
+setSales(salesWithDetails);
+
+
+    //  setSales(salesWithDetails);
     } catch (err) {
       console.error(err);
       alert("Failed to fetch sales");
@@ -43,6 +54,23 @@ useEffect(() => {
 
   fetchSales();
 }, [dispatch]); // ✅ useSelector yaha nahi
+
+
+
+const calculatePending = (items, payments) => {
+  const totalAmount = (items || []).reduce((acc, r) => {
+    const base = (r.qty || 0) * (r.rate || 0);
+    const perUnitDisc = ((r.rate || 0) * (r.discount_rate || 0)) / 100;
+    const totalDisc = (r.qty || 0) * perUnitDisc;
+    const taxable = Math.max(base - totalDisc, 0);
+    const gstAmt = (taxable * (r.gst_percent || 0)) / 100;
+    return acc + taxable + gstAmt;
+  }, 0);
+
+  const paidAmount = (payments || []).reduce((acc, p) => acc + (p.amount || 0), 0);
+  return totalAmount - paidAmount;
+};
+
 
 
 
@@ -212,8 +240,11 @@ useEffect(() => {
     <td className="border px-2 py-1">{fx(totals.total_gst)}</td>
     <td className="border px-2 py-1">{fx(totals.total_amount)}</td>
     <td className="border px-2 py-1">
-  {s.payment_status}({s.payment_method})
+  Paid: {fx(s.payments?.reduce((a, p) => a + (p.amount || 0), 0))}
+  <br/>
+  Pending: {fx(s.pending)}
 </td>
+
   </tr>
 </tfoot>
 

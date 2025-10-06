@@ -222,12 +222,28 @@ const SalesController = {
   },
 
   // --- UPDATE SALE ---
+ // --- UPDATE SALE ---
+  // --- UPDATE SALE ---
+ // --- UPDATE SALE ---
   updateSale: async (req, res) => {
     try {
-      const sale_id = req.params.id;
-      const { customer_id, bill_no, bill_date, items, status, payment_status, payment_method, remarks } = req.body;
+      const sale_id = Number(req.params.id);
+      if (!sale_id) return res.status(400).json({ error: 'Invalid sale ID' });
 
-      // 1️⃣ Update basic sale info
+      let { customer_id, bill_no, bill_date, items, status, payment_status, payment_method, remarks } = req.body;
+
+      // ✅ Validation
+      if (!customer_id) return res.status(400).json({ error: 'Customer ID is required' });
+      if (!bill_date) return res.status(400).json({ error: 'Bill date is required' });
+
+      customer_id = Number(customer_id);
+      bill_no = bill_no ?? null;
+      status = status || 'Active';
+      payment_status = payment_status || 'Unpaid';
+      payment_method = payment_method || 'Cash';
+      remarks = remarks ?? null;
+
+      // 1️⃣ Update sale basic info
       await Sales.update(sale_id, { customer_id, bill_no, bill_date, status, payment_status, payment_method, remarks });
 
       let total_taxable = 0, total_gst = 0, total_amount = 0;
@@ -236,20 +252,24 @@ const SalesController = {
       if (items && items.length) {
         await SaleItems.deleteBySaleId(sale_id);
         const totals = await SaleItems.create(items.map(i => ({ ...i, sale_id })));
+
         total_taxable = totals.total_taxable;
         total_gst = totals.total_gst;
         total_amount = totals.total_amount;
 
-        // 3️⃣ Update totals in sales table
+        // 3️⃣ Update totals in sale
         await Sales.update(sale_id, { total_taxable, total_gst, total_amount });
       }
 
       res.json({ message: 'Sale updated successfully', total_taxable, total_gst, total_amount });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Server Error' });
+      res.status(500).json({ error: err.message || 'Server Error' });
     }
   },
+
+
+
 
   // --- DELETE SALE ---
   deleteSale: async (req, res) => {

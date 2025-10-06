@@ -5,6 +5,7 @@ const { findByEmail, findById, createUser } = require("../models/user.model");
 // Register
 const register = (req, res) => {
   const { name, email, password } = req.body;
+  
 
   findByEmail(email, (err, existingUser) => {
     if (err) return res.status(500).json({ error: err.message });

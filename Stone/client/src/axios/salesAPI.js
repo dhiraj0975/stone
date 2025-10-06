@@ -19,6 +19,7 @@ const salesAPI = {
   getInvoice: (id) => api.get(`/sales/${id}/invoice`),// GET Invoice by sale ID
   getNewBillNo: () => api.get("/sales/new-bill"),     // GET new bill number
    getItemsBySaleId: (id) => api.get(`/sales/${id}/items`), // ✅ added
+   
 };
 
 export default salesAPI;

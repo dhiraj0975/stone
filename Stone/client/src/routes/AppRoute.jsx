@@ -25,6 +25,8 @@ import SalesForm from "../components/Sales/SalesForm";
 import SalesInvoice from "../components/Sales/SalesInvoice";
 import CustomerRegistration from "../components/Customers/CustomerRegistration";
 import Customer from "../components/Customers/Customer";
+import CustomerLedger from "../components/Sales/CustomerLedger";
+import SalesLayout from "../pages/SalesLayout";
 
 const AppRoute = () => {
   const { loading } = useSelector((state) => state.alerts);
@@ -63,7 +65,12 @@ const AppRoute = () => {
             <Route path="create" element={<SalesForm products={products} customers={customers} />} />
             <Route path="edit/:saleId" element={<SalesForm products={products} customers={customers} />} />
             <Route path="/sales/invoice/:id" element={<SalesInvoice />} />
+           
           </Route>
+          <Route path="/sales" element={<SalesLayout />}>
+  <Route index element={<SalesList />} />
+  <Route path="customer/:customerId/ledger" element={<CustomerLedger />} />
+</Route>
         </Route>
 
         {/* 🌐 Public routes */}

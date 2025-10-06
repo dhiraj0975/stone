@@ -115,6 +115,7 @@ const onRow = (i, field, value) => {
       const product = products.find((p) => String(p.id ?? p._id) === String(value));
       next[i].item_name = product ? product.product_name || "" : "";
       next[i].hsn_code = product ? product.hsn_code || "" : "";
+      next[i].purchase_rate = product ? product.purchase_rate || "" : "";
     }
     return next;
   });
@@ -286,10 +287,11 @@ const onSubmit = async (e) => {
               <option>PM</option>
             </select>
           </div>
+          
         </div>
 
         <div className="flex flex-col">
-          <label className="text-xs">SUPPLIER</label>
+          <label className="text-xs">Vendor</label>
           <select className="border rounded p-1" name="vendor_id" value={header.vendor_id} onChange={onHeader}>
             <option value="">Select</option>
             {vendors.map((v) => (
@@ -377,6 +379,7 @@ const onSubmit = async (e) => {
     if (p) {
       onRow(i, "item_name", p.product_name || "");
       onRow(i, "hsn_code", p.hsn_code || ""); // 👈 auto-fill HSN
+       onRow(i, "rate", Number(p.purchase_rate || 0)); // 👈 yahi line add ki
     }
   }}
 >
